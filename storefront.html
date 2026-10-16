@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Storefront | Nexovanta Marketplace</title>
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Base Styles -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="marketplace.css">
+
+  <!-- DB layer must load first -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <style>
+    /* ── Page Layout ─────────────────────────────────────────────── */
+    .sf-page-wrap {
+      min-height: 100vh;
+      padding: 100px 0 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Top Banner ──────────────────────────────────────────────── */
+    .sf-hero-banner {
+      background: linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(0,210,255,0.10) 100%);
+      border-bottom: 1px solid rgba(245,158,11,0.25);
+      padding: 36px 0 28px;
+      margin-bottom: 40px;
+    }
+    .sf-hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .sf-shop-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .sf-shop-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 18px;
+      object-fit: cover;
+      border: 3px solid rgba(245,158,11,0.5);
+      box-shadow: 0 0 20px rgba(245,158,11,0.3);
+    }
+    .sf-shop-info h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .sf-shop-tagline { color: var(--accent-cyan); font-size: 0.95rem; margin-bottom: 8px; }
+    .sf-shop-meta-row {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .sf-shop-meta-row span { display: flex; align-items: center; gap: 6px; }
+    .sf-hero-actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ── Section Cards ───────────────────────────────────────────── */
+    .sf-section-card {
+      background: rgba(11, 20, 38, 0.85);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(12px);
+    }
+    .sf-section-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      color: #fff;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sf-section-title i { color: var(--accent-cyan); }
+
+    /* ── Profile Edit Form ───────────────────────────────────────── */
+    .sf-form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 640px) {
+      .sf-form-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Storefront File Upload Controls ── */
+    .sf-file-upload-box {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px dashed rgba(0, 210, 255, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+    }
+    .sf-avatar-preview-container {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .sf-logo-preview {
+      width: 76px;
+      height: 76px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 2px solid var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+    }
+    .sf-file-upload-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sf-file-hint {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .sf-prod-dropzone {
+      background: rgba(15, 23, 42, 0.65);
+      border: 2px dashed rgba(0, 210, 255, 0.35);
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .sf-prod-dropzone:hover, .sf-prod-dropzone.dragover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.08);
+    }
+
+    /* ── Stats Strip ─────────────────────────────────────────────── */
+    .sf-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .sf-stat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      text-align: center;
+    }
+    .sf-stat-val { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 900; color: #fff; }
+    .sf-stat-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+
+    /* ── Products Table ──────────────────────────────────────────── */
+    .sf-table-wrap { overflow-x: auto; border-radius: var(--radius-md); }
+    .sf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .sf-table th {
+      background: rgba(0,210,255,0.07);
+      color: var(--accent-cyan);
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .sf-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: #cbd5e1;
+      vertical-align: middle;
+    }
+    .sf-table tr:hover td { background: rgba(255,255,255,0.03); }
+    .sf-prod-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+
+    /* ── Orders Table ────────────────────────────────────────────── */
+    .order-status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .order-status-badge.pending_confirmation { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .order-status-badge.preparing { background: rgba(0,210,255,0.15); color: var(--accent-cyan); }
+    .order-status-badge.ready_for_pickup { background: rgba(16,185,129,0.2); color: #10b981; }
+    .order-status-badge.delivered { background: rgba(99,102,241,0.2); color: #818cf8; }
+
+    /* ── Owner-Info Banner ───────────────────────────────────────── */
+    .sf-owner-info-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(0,210,255,0.07);
+      border: 1px solid rgba(0,210,255,0.2);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      margin-bottom: 24px;
+    }
+    .sf-owner-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent-cyan);
+    }
+
+    /* ── Tab Nav ─────────────────────────────────────────────────── */
+    .sf-tab-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      background: rgba(6,11,24,0.6);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 6px;
+    }
+    .sf-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .sf-tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .sf-tab-btn.active { background: rgba(0,210,255,0.15); color: var(--accent-cyan); }
+
+    /* ── Tab Panels ──────────────────────────────────────────────── */
+    .sf-panel { display: none; }
+    .sf-panel.active { display: block; }
+
+    /* ── Textarea ────────────────────────────────────────────────── */
+    textarea.auth-input { height: auto; padding: 10px 14px; resize: vertical; }
+
+    /* ── Preview Banner img ──────────────────────────────────────── */
+    .sf-banner-preview {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      margin-bottom: 8px;
+      background: var(--bg-card);
+    }
+
+    /* ── No-shop CTA ─────────────────────────────────────────────── */
+    .no-shop-cta {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .no-shop-cta i { font-size: 3.5rem; color: var(--text-dim); margin-bottom: 20px; display: block; }
+    .no-shop-cta h2 { font-family: var(--font-heading); font-size: 1.8rem; margin-bottom: 12px; }
+    .no-shop-cta p { color: var(--text-muted); max-width: 500px; margin: 0 auto 28px; }
+
+    /* ── Add Product Modal ───────────────────────────────────────── */
+    .sf-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sf-modal-backdrop.active { opacity: 1; pointer-events: all; }
+    .sf-modal-card {
+      background: rgba(11,20,38,0.97);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .sf-hero-inner { flex-direction: column; }
+      .sf-hero-actions { margin-left: 0; }
+      .sf-section-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <!-- ================================================================
+       NAVBAR
+       ================================================================ -->
+  <header class="navbar marketplace-nav">
+    <div class="container nav-container">
+      <a href="marketplace.html" class="brand-logo-wrap">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="brand-logo-img">
+        <div class="brand-text-block">
+          <span class="brand-name">NEXOVANTA</span>
+          <span class="brand-badge"><i class="fa-solid fa-store"></i> MY STOREFRONT</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li><a href="feed.html" class="nav-link"><i class="fa-solid fa-newspaper"></i> Feed</a></li>
+          <li><a href="marketplace.html" class="nav-link"><i class="fa-solid fa-shop"></i> Marketplace</a></li>
+          <li><a href="messages.html" class="nav-link"><i class="fa-solid fa-comments"></i> Messages</a></li>
+          <li><a href="storefront.html" class="nav-link active"><i class="fa-solid fa-store"></i> My Storefront</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <div id="navUserBadge" class="user-badge-nav">
+          <div id="navUserAvatar" class="user-avatar-mini"><i class="fa-solid fa-store"></i></div>
+          <div>
+            <div id="navUserName" style="font-size:0.8rem;font-weight:700;color:#fff;">Business Owner</div>
+            <div id="navUserRole" style="font-size:0.68rem;color:var(--accent-cyan);">Chuka Merchant 💼</div>
+          </div>
+          <button onclick="logoutNexovanta()" class="btn btn-sm btn-outline" style="padding:4px 10px;margin-left:6px;font-size:0.72rem;">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================
+       MAIN PAGE
+       ================================================================ -->
+  <main class="sf-page-wrap">
+    <div class="container">
+
+      <!-- ──── NOT A BUSINESS ACCOUNT — ACCESS DENIED ──── -->
+      <div id="accessDeniedPanel" style="display:none;" class="no-shop-cta">
+        <i class="fa-solid fa-lock"></i>
+        <h2>Business Accounts Only</h2>
+        <p>The Storefront Manager is exclusively for registered Nexovanta Business Owner accounts. Please log in with a Business account or register one.</p>
+        <a href="login.html?role=business&mode=register" class="btn btn-business btn-lg">
+          <i class="fa-solid fa-store"></i> Register a Business Account
+        </a>
+      </div>
+
+      <!-- ──── NO SHOP YET — CREATE ONE ──── -->
+      <div id="noShopPanel" style="display:none;" class="no-shop-cta">
+        <i class="fa-solid fa-store-slash"></i>
+        <h2>You Don't Have a Shop Yet</h2>
+        <p>Set up your digital storefront in seconds. It will immediately appear in the Nexovanta Marketplace for thousands of students and residents to discover.</p>
+        <button id="btnCreateShopTop" class="btn btn-business btn-lg">
+          <i class="fa-solid fa-rocket"></i> Create My Digital Shop
+        </button>
+      </div>
+
+      <!-- ──── SHOP HERO BANNER ──── -->
+      <div id="shopHeroSection" style="display:none;">
+
+        <!-- Hero -->
+        <div class="sf-hero-banner">
+          <div class="sf-hero-inner">
+            <div class="sf-shop-avatar-wrap">
+              <img id="heroShopAvatar" src="Logo.jpg" alt="Shop Logo" class="sf-shop-avatar" onerror="this.src='Logo.jpg'">
+            </div>
+            <div class="sf-shop-info">
+              <div style="margin-bottom:6px;">
+                <span class="storefront-status-pill" style="font-size:0.72rem;background:rgba(245,158,11,0.2);color:#fbbf24;border-color:rgba(245,158,11,0.4);">
+                  <i class="fa-solid fa-certificate"></i> Verified Merchant
+                </span>
+              </div>
+              <h1 id="heroShopName">Your Shop Name</h1>
+              <p class="sf-shop-tagline" id="heroShopTagline">Your Shop Tagline</p>
+              <div class="sf-shop-meta-row">
+                <span><i class="fa-solid fa-location-dot" style="color:var(--accent-cyan);"></i> <span id="heroShopLocation">Ndagani, Chuka</span></span>
+                <span><i class="fa-solid fa-clock" style="color:#fbbf24;"></i> <span id="heroShopHours">8:00 AM – 8:00 PM</span></span>
+                <span><i class="fa-solid fa-star" style="color:#fbbf24;"></i> <span id="heroShopRating">5.0</span></span>
+              </div>
+            </div>
+            <div class="sf-hero-actions">
+              <a id="heroViewLiveBtn" href="#" class="btn btn-outline btn-sm" target="_blank">
+                <i class="fa-solid fa-eye"></i> View Live Shop
+              </a>
+              <button id="heroPublishProductBtn" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Add Product
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="sf-stats-strip">
+          <div class="sf-stat-pill">
+            <div class="sf-stat-val" id="statProducts">0</div>
+            <div class="sf-stat-lbl">Products Listed</div>
+          </div>
+          <div class="sf-stat-pill">
+            <div class="sf-stat-val" id="statOrders" style="color:var(--accent-cyan);">0</div>
+            <div class="sf-stat-lbl">Orders Received</div>
+          </div>
+          <div class="sf-stat-pill">
+            <div class="sf-stat-val" id="statRevenue" style="color:#fbbf24;">KES 0</div>
+            <div class="sf-stat-lbl">Total Revenue</div>
+          </div>
+          <div class="sf-stat-pill">
+            <div class="sf-stat-val" id="statRating" style="color:#fbbf24;">5.0 ★</div>
+            <div class="sf-stat-lbl">Average Rating</div>
+          </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="sf-tab-nav">
+          <button class="sf-tab-btn active" data-tab="products">
+            <i class="fa-solid fa-boxes-stacked"></i> Products
+          </button>
+          <button class="sf-tab-btn" data-tab="orders">
+            <i class="fa-solid fa-truck-ramp-box"></i> Orders
+          </button>
+          <button class="sf-tab-btn" data-tab="profile">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Shop Profile
+          </button>
+        </div>
+
+        <!-- ────── PRODUCTS PANEL ────── -->
+        <div id="panelProducts" class="sf-panel active">
+          <div class="sf-section-card">
+            <div class="sf-section-title">
+              <i class="fa-solid fa-boxes-stacked"></i>
+              Store Inventory
+              <button id="btnAddProductInline" class="btn btn-primary btn-sm" style="margin-left:auto;">
+                <i class="fa-solid fa-plus"></i> Add Product
+              </button>
+            </div>
+
+            <div id="productsTableWrap" class="sf-table-wrap">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ────── ORDERS PANEL ────── -->
+        <div id="panelOrders" class="sf-panel">
+          <div class="sf-section-card">
+            <div class="sf-section-title">
+              <i class="fa-solid fa-truck-ramp-box"></i>
+              Incoming Customer Orders
+            </div>
+
+            <div id="ordersTableWrap" class="sf-table-wrap">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ────── EDIT PROFILE PANEL ────── -->
+        <div id="panelProfile" class="sf-panel">
+
+          <!-- Owner Account Info -->
+          <div class="sf-owner-info-bar">
+            <div id="ownerAvatarSmall" style="width:48px;height:48px;border-radius:50%;background:rgba(245,158,11,0.2);border:2px solid #fbbf24;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fbbf24;">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+              <div style="font-weight:700;color:#fff;" id="ownerNameDisplay">Business Owner</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">Nexovanta Business Account · <span id="ownerEmailDisplay">—</span></div>
+            </div>
+            <a href="profile.html" class="btn btn-outline btn-sm" style="margin-left:auto;">
+              <i class="fa-solid fa-user-pen"></i> Edit Account Profile
+            </a>
+          </div>
+
+          <div class="sf-section-card">
+            <div class="sf-section-title">
+              <i class="fa-solid fa-store"></i>
+              Shop Details & Branding
+            </div>
+
+            <form id="shopProfileForm">
+
+              <!-- Storefront Banner -->
+              <div class="auth-form-group">
+                <label class="auth-label">Storefront Banner Picture <span style="color:var(--accent-cyan);font-size:0.78rem;">(Select from your file)</span></label>
+                <img id="bannerPreviewImg" class="sf-banner-preview" src="Logo.jpg" alt="Banner Preview" onerror="this.src='Logo.jpg'">
+                <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <label for="editBannerFileInput" class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+                    <i class="fa-solid fa-panorama"></i> Choose Banner File
+                  </label>
+                  <input type="file" id="editBannerFileInput" accept="image/*" style="display:none;">
+                  <span id="bannerFileName" class="sf-file-hint">Select a landscape photo from your device • No URL needed</span>
+                </div>
+              </div>
+
+              <div class="sf-form-grid-2">
+                <!-- Shop Logo / Profile Picture -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Shop Logo / Profile Picture <span style="color:var(--accent-cyan);font-size:0.78rem;">(Select from your file)</span></label>
+                  <div class="sf-file-upload-box">
+                    <div class="sf-avatar-preview-container">
+                      <img id="logoPreviewImg" class="sf-logo-preview" src="Logo.jpg" alt="Shop Profile Picture" onerror="this.src='Logo.jpg'">
+                    </div>
+                    <div class="sf-file-upload-controls">
+                      <label for="editLogoFileInput" class="btn btn-primary btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-camera"></i> Choose Logo File
+                      </label>
+                      <input type="file" id="editLogoFileInput" accept="image/*" style="display:none;">
+                      <span id="logoFileName" class="sf-file-hint">Select a profile picture from device • No URL needed</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Shop Name -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Shop / Business Name</label>
+                  <div class="auth-input-wrap">
+                    <i class="fa-solid fa-store auth-input-icon"></i>
+                    <input type="text" id="editShopName" class="auth-input" placeholder="e.g. Ndagani Fresh Cafe" required>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tagline -->
+              <div class="auth-form-group">
+                <label class="auth-label">Short Tagline <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;">(shown below shop name in marketplace)</span></label>
+                <div class="auth-input-wrap">
+                  <i class="fa-solid fa-quote-left auth-input-icon"></i>
+                  <input type="text" id="editTagline" class="auth-input" placeholder="e.g. Your favourite campus cafe ☕" maxlength="100">
+                </div>
+              </div>
+
+              <!-- Description / Bio -->
+              <div class="auth-form-group">
+                <label class="auth-label">Full Business Description / Story</label>
+                <textarea id="editDescription" class="auth-input" rows="4" placeholder="Tell customers what makes your shop special — products, experience, specialties, student discounts..."></textarea>
+              </div>
+
+              <div class="sf-form-grid-2">
+                <!-- Location -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Physical Location</label>
+                  <div class="auth-input-wrap">
+                    <i class="fa-solid fa-map-pin auth-input-icon"></i>
+                    <input type="text" id="editLocation" class="auth-input" placeholder="e.g. Ndagani Stage, near Gate B">
+                  </div>
+                </div>
+
+                <!-- Area -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Nearest Landmark / Zone</label>
+                  <div class="auth-input-wrap">
+                    <i class="fa-solid fa-location-dot auth-input-icon"></i>
+                    <input type="text" id="editArea" class="auth-input" placeholder="e.g. Ndagani, Gate A, Chuka Town">
+                  </div>
+                </div>
+              </div>
+
+              <div class="sf-form-grid-2">
+                <!-- Opening Hours -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Opening Hours</label>
+                  <div class="auth-input-wrap">
+                    <i class="fa-solid fa-clock auth-input-icon"></i>
+                    <input type="text" id="editHours" class="auth-input" placeholder="e.g. Mon–Sat 7:00 AM – 10:00 PM">
+                  </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="auth-form-group">
+                  <label class="auth-label">Customer Service Phone</label>
+                  <div class="auth-input-wrap">
+                    <i class="fa-solid fa-phone auth-input-icon"></i>
+                    <input type="tel" id="editPhone" class="auth-input" placeholder="0712 345 678">
+                  </div>
+                </div>
+              </div>
+
+              <!-- WhatsApp Number -->
+              <div class="auth-form-group">
+                <label class="auth-label">WhatsApp Number <span style="color:var(--text-dim);font-size:0.78rem;">(format: 254712345678 — international, no +)</span></label>
+                <div class="auth-input-wrap">
+                  <i class="fa-brands fa-whatsapp auth-input-icon" style="color:#25d366;"></i>
+                  <input type="text" id="editWhatsApp" class="auth-input" placeholder="254712345678">
+                </div>
+              </div>
+
+              <!-- Category + District -->
+              <div class="sf-form-grid-2">
+                <div class="auth-form-group">
+                  <label class="auth-label">Business Category</label>
+                  <select id="editCategory" class="auth-input auth-select">
+                    <option value="tech">Tech & Electronics</option>
+                    <option value="fashion">Fashion & Mitumba</option>
+                    <option value="fresh">Fresh Produce</option>
+                    <option value="home">Furniture & Home</option>
+                    <option value="hardware">Hardware & Tools</option>
+                    <option value="food">Food & Beverages</option>
+                    <option value="ict">ICT & Printing</option>
+                    <option value="retail">Retail / General Shop</option>
+                    <option value="health">Chemist & Health</option>
+                    <option value="salon">Salon & Grooming</option>
+                    <option value="transport">Boda Boda & Transport</option>
+                    <option value="hostel-mgmt">Hostel & Accommodation</option>
+                  </select>
+                </div>
+                <div class="auth-form-group">
+                  <label class="auth-label">Market District</label>
+                  <select id="editDistrict" class="auth-input auth-select">
+                    <option value="tech">Technology Hub</option>
+                    <option value="fashion">Fashion Street</option>
+                    <option value="fresh">Fresh Market</option>
+                    <option value="home">Home & Living</option>
+                    <option value="hardware">Builders' Square</option>
+                    <option value="food">Food & Local Products</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Awning Colour -->
+              <div class="auth-form-group" style="max-width:280px;">
+                <label class="auth-label">Storefront Awning Colour</label>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <input type="color" id="editAwningColor" value="#00d2ff"
+                    style="width:48px;height:38px;border-radius:8px;border:1px solid var(--border-light);background:transparent;cursor:pointer;">
+                  <span style="font-size:0.82rem;color:var(--text-muted);" id="awningColorHex">#00d2ff</span>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-business btn-lg" style="width:100%;margin-top:10px;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Shop Profile
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- end panelProfile -->
+
+      </div>
+      <!-- end shopHeroSection -->
+
+    </div>
+  </main>
+
+  <!-- ================================================================
+       ADD / EDIT PRODUCT MODAL
+       ================================================================ -->
+  <div id="addProductModal" class="sf-modal-backdrop">
+    <div class="sf-modal-card">
+      <button id="closeAddProductModal" class="modal-close-pill" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 style="font-family:var(--font-heading);font-size:1.4rem;color:#fff;margin-bottom:20px;">
+        <i class="fa-solid fa-box-open" style="color:var(--accent-cyan);"></i> Add New Product
+      </h3>
+
+      <form id="addProductForm">
+        <div class="auth-form-group">
+          <label class="auth-label">Product Name <span style="color:#ef4444;">*</span></label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-tag auth-input-icon"></i>
+            <input type="text" id="newProdName" class="auth-input" placeholder="e.g. Casio Scientific Calculator" required>
+          </div>
+        </div>
+
+        <div class="sf-form-grid-2">
+          <div class="auth-form-group">
+            <label class="auth-label">Price (KES) <span style="color:#ef4444;">*</span></label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-money-bill auth-input-icon"></i>
+              <input type="number" id="newProdPrice" class="auth-input" placeholder="e.g. 2400" min="1" required>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Stock Quantity <span style="color:#ef4444;">*</span></label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-layer-group auth-input-icon"></i>
+              <input type="number" id="newProdStock" class="auth-input" placeholder="e.g. 10" min="0" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Original / Crossed-out Price (KES) <span style="color:var(--text-dim);font-size:0.78rem;">Optional — for discounts</span></label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-tag auth-input-icon"></i>
+            <input type="number" id="newProdOriginalPrice" class="auth-input" placeholder="e.g. 3000">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Product Picture <span style="color:#ef4444;">*</span> <span style="color:var(--accent-cyan);font-size:0.78rem;">(Select from your file)</span></label>
+          <div class="sf-prod-dropzone" id="prodDropzone">
+            <input type="file" id="newProdFileInput" accept="image/*" style="display:none;">
+            <div id="prodUploadPlaceholder" style="text-align:center;padding:26px 16px;cursor:pointer;">
+              <div style="width:52px;height:52px;border-radius:50%;background:rgba(0,210,255,0.12);color:var(--accent-cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.4rem;">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+              </div>
+              <div style="font-weight:700;color:#fff;font-size:0.95rem;margin-bottom:4px;">Click to browse product photo from your files</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">PNG, JPG, JPEG, WebP • No URL link required</div>
+            </div>
+            <div id="prodPreviewContainer" style="display:none;text-align:center;padding:14px;">
+              <img id="newProdPreviewImg" src="" alt="Product Preview" style="max-height:160px;max-width:100%;border-radius:10px;object-fit:cover;border:2px solid var(--border-glow);">
+              <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:12px;">
+                <span id="prodFileLabel" style="font-size:0.8rem;color:var(--accent-cyan);font-weight:600;"></span>
+                <button type="button" id="btnChangeProdFile" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:0.75rem;">
+                  <i class="fa-solid fa-arrows-rotate"></i> Change Photo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Badge / Label <span style="color:var(--text-dim);font-size:0.78rem;">Optional — e.g. New Arrival, Hot Deal, Limited</span></label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-certificate auth-input-icon"></i>
+            <input type="text" id="newProdBadge" class="auth-input" placeholder="e.g. New Arrival">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Product Description <span style="color:#ef4444;">*</span></label>
+          <textarea id="newProdDesc" class="auth-input" rows="3" placeholder="Condition, specifications, student delivery notes..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">
+          <i class="fa-solid fa-paper-plane"></i> Publish to My Storefront
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       CREATE SHOP MODAL
+       ================================================================ -->
+  <div id="createShopModal" class="sf-modal-backdrop">
+    <div class="sf-modal-card">
+      <button id="closeCreateShopModal" class="modal-close-pill" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 style="font-family:var(--font-heading);font-size:1.6rem;color:#fff;margin-bottom:6px;">
+        <i class="fa-solid fa-rocket" style="color:#fbbf24;"></i> Launch Your Digital Shop
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:22px;">
+        Your storefront will appear immediately in the Nexovanta Marketplace for students and residents to discover.
+      </p>
+
+      <form id="createShopForm">
+        <div class="auth-form-group">
+          <label class="auth-label">Shop / Business Name <span style="color:#ef4444;">*</span></label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-store auth-input-icon"></i>
+            <input type="text" id="createShopName" class="auth-input" placeholder="e.g. Ndagani Fresh Cafe & Bakes" required>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Short Tagline</label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-quote-left auth-input-icon"></i>
+            <input type="text" id="createShopTagline" class="auth-input" placeholder="e.g. Your favourite campus cafe ☕">
+          </div>
+        </div>
+
+        <div class="sf-form-grid-2">
+          <div class="auth-form-group">
+            <label class="auth-label">Category <span style="color:#ef4444;">*</span></label>
+            <select id="createShopCategory" class="auth-input auth-select" required>
+              <option value="" disabled selected>Select Category</option>
+              <option value="food">Food & Beverages</option>
+              <option value="tech">Tech & Electronics</option>
+              <option value="fashion">Fashion & Mitumba</option>
+              <option value="fresh">Fresh Produce</option>
+              <option value="home">Furniture & Home</option>
+              <option value="hardware">Hardware & Tools</option>
+              <option value="ict">ICT & Printing</option>
+              <option value="retail">Retail / General Shop</option>
+              <option value="health">Chemist & Health</option>
+              <option value="salon">Salon & Grooming</option>
+              <option value="transport">Boda Boda & Transport</option>
+              <option value="hostel-mgmt">Hostel & Accommodation</option>
+            </select>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Market District</label>
+            <select id="createShopDistrict" class="auth-input auth-select">
+              <option value="food">Food & Local Products</option>
+              <option value="tech">Technology Hub</option>
+              <option value="fashion">Fashion Street</option>
+              <option value="fresh">Fresh Market</option>
+              <option value="home">Home & Living</option>
+              <option value="hardware">Builders' Square</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Physical Location <span style="color:#ef4444;">*</span></label>
+          <div class="auth-input-wrap">
+            <i class="fa-solid fa-map-pin auth-input-icon"></i>
+            <input type="text" id="createShopLocation" class="auth-input" placeholder="e.g. Ndagani Stage, near Gate B" required>
+          </div>
+        </div>
+
+        <div class="sf-form-grid-2">
+          <div class="auth-form-group">
+            <label class="auth-label">Phone Number <span style="color:#ef4444;">*</span></label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-phone auth-input-icon"></i>
+              <input type="tel" id="createShopPhone" class="auth-input" placeholder="0712 345 678" required>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">WhatsApp Number</label>
+            <div class="auth-input-wrap">
+              <i class="fa-brands fa-whatsapp auth-input-icon" style="color:#25d366;"></i>
+              <input type="text" id="createShopWhatsApp" class="auth-input" placeholder="254712345678">
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Business Description</label>
+          <textarea id="createShopDesc" class="auth-input" rows="3" placeholder="Tell the community what makes your shop special..."></textarea>
+        </div>
+
+        <div class="auth-form-group">
+          <label class="auth-label">Shop Logo / Avatar <span style="color:var(--accent-cyan);font-size:0.78rem;">(Optional - Choose from your file)</span></label>
+          <div style="display:flex;align-items:center;gap:14px;background:rgba(15,23,42,0.65);padding:10px 14px;border-radius:12px;border:1px dashed rgba(245,158,11,0.35);">
+            <img id="createShopLogoPrev" src="Logo.jpg" style="width:48px;height:48px;border-radius:12px;object-fit:cover;border:2px solid #fbbf24;" alt="Shop Logo">
+            <div>
+              <label for="createShopLogoFile" class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-camera"></i> Choose Logo File
+              </label>
+              <input type="file" id="createShopLogoFile" accept="image/*" style="display:none;">
+              <div id="createShopLogoName" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Default logo used if not selected</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-business btn-lg" style="width:100%;margin-top:10px;">
+          <i class="fa-solid fa-store"></i> Open My Digital Storefront
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="nexovantaToast" class="toast-notice" style="display:none;">
+    <i class="fa-solid fa-circle-check toast-icon"></i>
+    <span class="toast-text" id="toastMessage"></span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="marketplace-data.js"></script>
+  <script src="marketplace-store.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+  /**
+   * Storefront Manager — Business Owner Page Controller
+   */
+  (function () {
+    'use strict';
+
+    let session = null;
+    let ownerUser = null;
+    let myShop = null;
+
+    // ──────────────────────────────────────────────────────────────────
+    // BOOT
+    // ──────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      session = NexovantaDB.Session.get();
+
+      // Must be logged in
+      if (!session || !session.loggedIn) {
+        window.location.href = 'login.html?return=storefront.html';
+        return;
+      }
+
+      // Must be a business account
+      if (session.role !== 'business') {
+        document.getElementById('accessDeniedPanel').style.display = 'block';
+        return;
+      }
+
+      ownerUser = NexovantaDB.Users.getById(session.id);
+      updateNavBadge();
+      loadMyShop();
+      setupTabs();
+      setupModals();
+      setupForms();
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // NAV BADGE
+    // ──────────────────────────────────────────────────────────────────
+    function updateNavBadge() {
+      const nameEl = document.getElementById('navUserName');
+      const roleEl = document.getElementById('navUserRole');
+      if (nameEl) nameEl.textContent = `@${session.username}`;
+      if (roleEl) roleEl.textContent = 'Chuka Merchant 💼';
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // LOAD SHOP OWNED BY THIS USER
+    // ──────────────────────────────────────────────────────────────────
+    function loadMyShop() {
+      const shops = window.MarketplaceStore.getShops();
+      myShop = shops.find(s => s.owner_id === session.id) || null;
+
+      if (!myShop) {
+        document.getElementById('noShopPanel').style.display = 'block';
+        return;
+      }
+
+      showShopDashboard();
+    }
+
+    function showShopDashboard() {
+      document.getElementById('noShopPanel').style.display = 'none';
+      document.getElementById('shopHeroSection').style.display = 'block';
+
+      // Hero bar
+      document.getElementById('heroShopAvatar').src = myShop.logo_url || 'Logo.jpg';
+      document.getElementById('heroShopName').textContent = myShop.name;
+      document.getElementById('heroShopTagline').textContent = myShop.tagline || '';
+      document.getElementById('heroShopLocation').textContent = myShop.location || 'Chuka';
+      document.getElementById('heroShopHours').textContent = myShop.opening_hours || '8:00 AM – 8:00 PM';
+      document.getElementById('heroShopRating').textContent = (myShop.rating || 5).toFixed(1) + ' ★';
+
+      const viewBtn = document.getElementById('heroViewLiveBtn');
+      if (viewBtn) viewBtn.href = `marketplace.html?shop=${myShop.slug}`;
+
+      refreshStats();
+      renderProductsTable();
+      renderOrdersTable();
+      populateProfileForm();
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // STATS
+    // ──────────────────────────────────────────────────────────────────
+    function refreshStats() {
+      const products = window.MarketplaceStore.getProducts({ shop_id: myShop.id });
+      const orders   = window.MarketplaceStore.getOrdersByShop(myShop.id);
+      const revenue  = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
+
+      document.getElementById('statProducts').textContent = products.length;
+      document.getElementById('statOrders').textContent   = orders.length;
+      document.getElementById('statRevenue').textContent  = 'KES ' + revenue.toLocaleString();
+      document.getElementById('statRating').textContent   = (myShop.rating || 5).toFixed(1) + ' ★';
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // PRODUCTS TABLE
+    // ──────────────────────────────────────────────────────────────────
+    function renderProductsTable() {
+      const wrap = document.getElementById('productsTableWrap');
+      const products = window.MarketplaceStore.getProducts({ shop_id: myShop.id });
+
+      if (!products.length) {
+        wrap.innerHTML = `
+          <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+            <i class="fa-solid fa-boxes-stacked" style="font-size:2.5rem;margin-bottom:14px;opacity:0.5;display:block;"></i>
+            <h4 style="color:#fff;">No Products Listed Yet</h4>
+            <p style="margin-bottom:16px;">Add your first product to appear in the marketplace.</p>
+            <button class="btn btn-primary btn-sm open-add-product-modal">
+              <i class="fa-solid fa-plus"></i> Add First Product
+            </button>
+          </div>
+        `;
+        wrap.querySelectorAll('.open-add-product-modal').forEach(b =>
+          b.addEventListener('click', () => openAddProductModal()));
+        return;
+      }
+
+      wrap.innerHTML = `
+        <table class="sf-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Badge</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <img src="${escHtml((p.image_urls && p.image_urls[0]) || 'Logo.jpg')}" 
+                         class="sf-prod-thumb" onerror="this.src='Logo.jpg'" alt="${escHtml(p.name)}">
+                    <span style="font-weight:700;color:#fff;">${escHtml(p.name)}</span>
+                  </div>
+                </td>
+                <td style="color:#fbbf24;font-weight:700;">KES ${p.price.toLocaleString()}</td>
+                <td>
+                  <span style="color:${p.stock_quantity > 5 ? '#10b981' : p.stock_quantity > 0 ? '#fbbf24' : '#ef4444'};">
+                    ${p.stock_quantity} units
+                  </span>
+                </td>
+                <td>
+                  <span class="storefront-status-pill" style="font-size:0.7rem;">${escHtml(p.badge || 'Active')}</span>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm btn-delete-prod" 
+                          data-id="${p.id}" 
+                          style="padding:4px 10px;color:#ef4444;border-color:rgba(239,68,68,0.3);">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      wrap.querySelectorAll('.btn-delete-prod').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          if (confirm('Remove this product from your storefront?')) {
+            window.MarketplaceStore.deleteProduct(id);
+            showToast('Product removed from your storefront.');
+            renderProductsTable();
+            refreshStats();
+          }
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // ORDERS TABLE
+    // ──────────────────────────────────────────────────────────────────
+    function renderOrdersTable() {
+      const wrap = document.getElementById('ordersTableWrap');
+      const orders = window.MarketplaceStore.getOrdersByShop(myShop.id);
+
+      if (!orders.length) {
+        wrap.innerHTML = `
+          <div style="text-align:center;padding:50px 20px;color:var(--text-muted);">
+            <i class="fa-solid fa-truck-ramp-box" style="font-size:2.5rem;margin-bottom:14px;opacity:0.5;display:block;"></i>
+            <h4 style="color:#fff;">No Orders Yet</h4>
+            <p>Customer orders will appear here when they place orders from your shop.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const statusMap = {
+        pending_confirmation: 'Pending',
+        preparing:            'Preparing',
+        ready_for_pickup:     'Ready for Pickup',
+        delivered:            'Delivered'
+      };
+
+      wrap.innerHTML = `
+        <table class="sf-table">
+          <thead>
+            <tr>
+              <th>Order Ref</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Contact</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(ord => `
+              <tr>
+                <td style="font-weight:700;color:var(--accent-cyan);">${escHtml(ord.order_number)}</td>
+                <td>
+                  <div style="font-weight:700;color:#fff;">${escHtml(ord.customer_name)}</div>
+                  <div style="font-size:0.75rem;color:var(--text-dim);">${escHtml(ord.customer_phone)}</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">
+                    ${ord.delivery_method === 'delivery' ? '🚴 ' + escHtml(ord.delivery_address) : '🏪 Shop Pickup'}
+                  </div>
+                </td>
+                <td style="font-size:0.82rem;color:#cbd5e1;">
+                  ${ord.items.map(it => `${escHtml(it.product_name)} ×${it.quantity}`).join('<br>')}
+                </td>
+                <td style="font-weight:700;color:#fbbf24;">KES ${ord.total_amount.toLocaleString()}</td>
+                <td>
+                  <select class="order-status-select" data-order-id="${ord.id}"
+                    style="background:#0f172a;color:#fff;border:1px solid var(--border-light);padding:5px 8px;border-radius:8px;font-size:0.8rem;cursor:pointer;">
+                    <option value="pending_confirmation" ${ord.order_status === 'pending_confirmation' ? 'selected' : ''}>Pending</option>
+                    <option value="preparing"            ${ord.order_status === 'preparing'            ? 'selected' : ''}>Preparing</option>
+                    <option value="ready_for_pickup"     ${ord.order_status === 'ready_for_pickup'     ? 'selected' : ''}>Ready for Pickup</option>
+                    <option value="delivered"            ${ord.order_status === 'delivered'            ? 'selected' : ''}>Delivered</option>
+                  </select>
+                </td>
+                <td>
+                  <a href="${window.MarketplaceStore.generateWhatsAppOrderUrl(ord)}" 
+                     target="_blank" rel="noopener noreferrer"
+                     style="color:#25d366;font-size:1.4rem;" title="Chat Customer on WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </a>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      wrap.querySelectorAll('.order-status-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+          window.MarketplaceStore.updateOrderStatus(sel.getAttribute('data-order-id'), sel.value);
+          showToast('Order status updated!');
+          refreshStats();
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // File Upload State
+    let selectedProductImage = null;
+    let selectedLogoImage = null;
+    let selectedBannerImage = null;
+    let createShopLogoImage = null;
+
+    // Helper: Process and resize image file to prevent localStorage quota issues
+    function processImageFile(file, maxDimension = 900, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+          return reject(new Error('Please select a valid image file (PNG, JPG, JPEG, WebP).'));
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => reject(new Error('Failed to load image file.'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Failed to read image file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // POPULATE PROFILE FORM
+    // ──────────────────────────────────────────────────────────────────
+    function populateProfileForm() {
+      if (!myShop) return;
+
+      document.getElementById('editShopName').value     = myShop.name           || '';
+      document.getElementById('editTagline').value      = myShop.tagline        || '';
+      document.getElementById('editDescription').value  = myShop.description    || '';
+      document.getElementById('editLocation').value     = myShop.location       || '';
+      document.getElementById('editArea').value         = myShop.area           || '';
+      document.getElementById('editHours').value        = myShop.opening_hours  || '';
+      document.getElementById('editPhone').value        = myShop.phone          || '';
+      document.getElementById('editWhatsApp').value     = myShop.whatsapp_number || '';
+      document.getElementById('editCategory').value     = myShop.category_id    || 'food';
+      document.getElementById('editDistrict').value     = myShop.district_id    || 'food';
+      document.getElementById('editAwningColor').value  = myShop.awning_color   || '#00d2ff';
+      document.getElementById('awningColorHex').textContent = myShop.awning_color || '#00d2ff';
+
+      const bannerPrev = document.getElementById('bannerPreviewImg');
+      if (bannerPrev) bannerPrev.src = myShop.banner_url || 'Logo.jpg';
+      const logoPrev = document.getElementById('logoPreviewImg');
+      if (logoPrev) logoPrev.src = myShop.logo_url || 'Logo.jpg';
+
+      selectedBannerImage = null;
+      selectedLogoImage = null;
+
+      const bannerFileName = document.getElementById('bannerFileName');
+      if (bannerFileName) {
+        bannerFileName.textContent = myShop.banner_url ? 'Current banner loaded • Choose file to replace' : 'Select a landscape photo from device';
+      }
+      const logoFileName = document.getElementById('logoFileName');
+      if (logoFileName) {
+        logoFileName.textContent = myShop.logo_url ? 'Current profile picture loaded • Choose file to replace' : 'Select a profile picture from device';
+      }
+
+      document.getElementById('editAwningColor').addEventListener('input', e => {
+        document.getElementById('awningColorHex').textContent = e.target.value;
+      });
+
+      // Owner info
+      if (ownerUser) {
+        document.getElementById('ownerNameDisplay').textContent  = ownerUser.full_name || session.username;
+        document.getElementById('ownerEmailDisplay').textContent = ownerUser.email || '—';
+        const ownerAvatar = document.getElementById('ownerAvatarSmall');
+        if (ownerAvatar && ownerUser.avatar_url) {
+          ownerAvatar.innerHTML = `<img src="${ownerUser.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        }
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // TAB NAVIGATION
+    // ──────────────────────────────────────────────────────────────────
+    function setupTabs() {
+      document.querySelectorAll('.sf-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sf-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.sf-panel').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const panelId = 'panel' + btn.getAttribute('data-tab').charAt(0).toUpperCase() + btn.getAttribute('data-tab').slice(1);
+          const panel = document.getElementById(panelId);
+          if (panel) panel.classList.add('active');
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // MODAL HANDLERS
+    // ──────────────────────────────────────────────────────────────────
+    function openAddProductModal() {
+      document.getElementById('addProductModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeAddProdModal() {
+      document.getElementById('addProductModal').classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('addProductForm').reset();
+      selectedProductImage = null;
+      const placeholder = document.getElementById('prodUploadPlaceholder');
+      const container = document.getElementById('prodPreviewContainer');
+      const fileInput = document.getElementById('newProdFileInput');
+      if (placeholder) placeholder.style.display = 'block';
+      if (container) container.style.display = 'none';
+      if (fileInput) fileInput.value = '';
+    }
+
+    function openCreateShopModal() {
+      document.getElementById('createShopModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      // Pre-fill with user's name and location if available
+      if (ownerUser) {
+        const shopNameInput = document.getElementById('createShopName');
+        if (shopNameInput && !shopNameInput.value && ownerUser.full_name) {
+          shopNameInput.value = ownerUser.full_name;
+        }
+        const locationInput = document.getElementById('createShopLocation');
+        if (locationInput && !locationInput.value && ownerUser.location) {
+          locationInput.value = ownerUser.location;
+        }
+        const phoneInput = document.getElementById('createShopPhone');
+        if (phoneInput && !phoneInput.value && ownerUser.phone) {
+          phoneInput.value = ownerUser.phone;
+        }
+        const waInput = document.getElementById('createShopWhatsApp');
+        if (waInput && !waInput.value && ownerUser.phone) {
+          waInput.value = '254' + ownerUser.phone.replace(/^0/, '').replace(/\s+/g, '');
+        }
+      }
+    }
+    function closeCreateShopModal() {
+      document.getElementById('createShopModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function setupModals() {
+      document.getElementById('closeAddProductModal').addEventListener('click', closeAddProdModal);
+      document.getElementById('closeCreateShopModal').addEventListener('click', closeCreateShopModal);
+
+      // "Create shop" triggers
+      const createBtn = document.getElementById('btnCreateShopTop');
+      if (createBtn) createBtn.addEventListener('click', openCreateShopModal);
+
+      // "Add product" triggers
+      [document.getElementById('heroPublishProductBtn'),
+       document.getElementById('btnAddProductInline')].forEach(btn => {
+        if (btn) btn.addEventListener('click', openAddProductModal);
+      });
+
+      // Backdrop clicks
+      document.getElementById('addProductModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('addProductModal')) closeAddProdModal();
+      });
+      document.getElementById('createShopModal').addEventListener('click', e => {
+        if (e.target === document.getElementById('createShopModal')) closeCreateShopModal();
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // FORM SUBMISSIONS & FILE HANDLERS
+    // ──────────────────────────────────────────────────────────────────
+    function setupForms() {
+      // ── Product Image File Selector & Dropzone ──
+      const prodFileInput = document.getElementById('newProdFileInput');
+      const prodDropzone = document.getElementById('prodDropzone');
+      const prodPlaceholder = document.getElementById('prodUploadPlaceholder');
+      const prodPrevContainer = document.getElementById('prodPreviewContainer');
+      const prodPreviewImg = document.getElementById('newProdPreviewImg');
+      const prodFileLabel = document.getElementById('prodFileLabel');
+      const btnChangeProd = document.getElementById('btnChangeProdFile');
+
+      if (prodPlaceholder && prodFileInput) {
+        prodPlaceholder.addEventListener('click', () => prodFileInput.click());
+      }
+      if (btnChangeProd && prodFileInput) {
+        btnChangeProd.addEventListener('click', () => prodFileInput.click());
+      }
+
+      if (prodFileInput) {
+        prodFileInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            const dataUrl = await processImageFile(file, 900, 0.85);
+            selectedProductImage = dataUrl;
+            prodPreviewImg.src = dataUrl;
+            prodFileLabel.textContent = file.name;
+            prodPlaceholder.style.display = 'none';
+            prodPrevContainer.style.display = 'block';
+          } catch (err) {
+            showToast(err.message || 'Error processing product image file.');
+          }
+        });
+      }
+
+      // Drag & drop on product dropzone
+      if (prodDropzone && prodFileInput) {
+        ['dragenter', 'dragover'].forEach(name => {
+          prodDropzone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            prodDropzone.classList.add('dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(name => {
+          prodDropzone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            prodDropzone.classList.remove('dragover');
+          });
+        });
+        prodDropzone.addEventListener('drop', async (e) => {
+          const dt = e.dataTransfer;
+          const file = dt && dt.files && dt.files[0];
+          if (file) {
+            try {
+              const dataUrl = await processImageFile(file, 900, 0.85);
+              selectedProductImage = dataUrl;
+              prodPreviewImg.src = dataUrl;
+              prodFileLabel.textContent = file.name;
+              prodPlaceholder.style.display = 'none';
+              prodPrevContainer.style.display = 'block';
+            } catch (err) {
+              showToast(err.message || 'Error reading dropped product file.');
+            }
+          }
+        });
+      }
+
+      // ── Shop Logo File Input ──
+      const logoFileInput = document.getElementById('editLogoFileInput');
+      const logoPrevImg = document.getElementById('logoPreviewImg');
+      const logoFileName = document.getElementById('logoFileName');
+
+      if (logoFileInput) {
+        logoFileInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            const dataUrl = await processImageFile(file, 600, 0.85);
+            selectedLogoImage = dataUrl;
+            if (logoPrevImg) logoPrevImg.src = dataUrl;
+            if (logoFileName) logoFileName.textContent = `Selected: ${file.name} (Ready to save)`;
+            showToast('✅ Profile picture selected from file! Click "Save Shop Profile" to apply.');
+          } catch (err) {
+            showToast(err.message || 'Error reading logo file.');
+          }
+        });
+      }
+
+      // ── Shop Banner File Input ──
+      const bannerFileInput = document.getElementById('editBannerFileInput');
+      const bannerPrevImg = document.getElementById('bannerPreviewImg');
+      const bannerFileName = document.getElementById('bannerFileName');
+
+      if (bannerFileInput) {
+        bannerFileInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            const dataUrl = await processImageFile(file, 1200, 0.82);
+            selectedBannerImage = dataUrl;
+            if (bannerPrevImg) bannerPrevImg.src = dataUrl;
+            if (bannerFileName) bannerFileName.textContent = `Selected: ${file.name} (Ready to save)`;
+            showToast('✅ Banner selected from file! Click "Save Shop Profile" to apply.');
+          } catch (err) {
+            showToast(err.message || 'Error reading banner file.');
+          }
+        });
+      }
+
+      // ── Create Shop Logo File Input ──
+      const createLogoInput = document.getElementById('createShopLogoFile');
+      const createLogoPrev = document.getElementById('createShopLogoPrev');
+      const createLogoName = document.getElementById('createShopLogoName');
+
+      if (createLogoInput) {
+        createLogoInput.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            const dataUrl = await processImageFile(file, 600, 0.85);
+            createShopLogoImage = dataUrl;
+            if (createLogoPrev) createLogoPrev.src = dataUrl;
+            if (createLogoName) createLogoName.textContent = file.name;
+          } catch (err) {
+            showToast(err.message || 'Error reading logo file.');
+          }
+        });
+      }
+
+      // ── Create Shop Submission ──
+      document.getElementById('createShopForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name     = document.getElementById('createShopName').value.trim();
+        const tagline  = document.getElementById('createShopTagline').value.trim();
+        const cat      = document.getElementById('createShopCategory').value;
+        const district = document.getElementById('createShopDistrict').value;
+        const location = document.getElementById('createShopLocation').value.trim();
+        const phone    = document.getElementById('createShopPhone').value.trim();
+        const wa       = document.getElementById('createShopWhatsApp').value.trim();
+        const desc     = document.getElementById('createShopDesc').value.trim();
+
+        if (!name || !location || !cat) {
+          showToast('Please fill in all required fields.');
+          return;
+        }
+
+        myShop = window.MarketplaceStore.registerShop({
+          name,
+          tagline,
+          category_id: cat,
+          district_id: district,
+          location,
+          area: location.split(',')[0].trim(),
+          phone,
+          whatsapp_number: wa || ('254' + phone.replace(/^0/, '').replace(/\s+/g, '')),
+          description: desc || `Welcome to ${name} on Nexovanta!`,
+          owner_id: session.id,
+          owner_name: ownerUser?.full_name || session.username,
+          logo_url: createShopLogoImage || 'Logo.jpg',
+        });
+
+        // Also store owner_id on user record
+        try {
+          const updatedProfile = await NexovantaAuth.updateProfile({ marketplace_shop_id: myShop.id });
+          Object.assign(session, updatedProfile);
+          NexovantaDB.Session.set(session);
+        } catch (error) {
+          showToast(error.message || 'Shop created, but the profile link could not be saved.');
+        }
+
+        closeCreateShopModal();
+        showToast(`🎉 "${myShop.name}" is now live on the Nexovanta Marketplace!`);
+        showShopDashboard();
+      });
+
+      // ── Add Product Submission ──
+      document.getElementById('addProductForm').addEventListener('submit', e => {
+        e.preventDefault();
+        if (!myShop) { showToast('Create your shop first.'); return; }
+
+        const name     = document.getElementById('newProdName').value.trim();
+        const price    = parseFloat(document.getElementById('newProdPrice').value);
+        const stock    = parseInt(document.getElementById('newProdStock').value, 10);
+        const origPx   = parseFloat(document.getElementById('newProdOriginalPrice').value) || null;
+        const badge    = document.getElementById('newProdBadge').value.trim();
+        const desc     = document.getElementById('newProdDesc').value.trim();
+
+        if (!name || isNaN(price) || isNaN(stock)) {
+          showToast('Please fill in product name, price and stock.');
+          return;
+        }
+
+        if (!selectedProductImage) {
+          showToast('⚠️ Please select a product picture from your device.');
+          return;
+        }
+
+        window.MarketplaceStore.addProduct(myShop.id, {
+          name,
+          price,
+          stock_quantity: stock,
+          original_price: origPx,
+          image_urls: [selectedProductImage],
+          badge: badge || 'New Arrival',
+          description: desc || 'Quality product available in Chuka.'
+        });
+
+        closeAddProdModal();
+        showToast(`✅ "${name}" published to your storefront with uploaded photo!`);
+        renderProductsTable();
+        refreshStats();
+      });
+
+      // ── Save Shop Profile Submission ──
+      document.getElementById('shopProfileForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!myShop) return;
+
+        const updates = {
+          name:          document.getElementById('editShopName').value.trim()    || myShop.name,
+          tagline:       document.getElementById('editTagline').value.trim(),
+          description:   document.getElementById('editDescription').value.trim(),
+          location:      document.getElementById('editLocation').value.trim(),
+          area:          document.getElementById('editArea').value.trim(),
+          opening_hours: document.getElementById('editHours').value.trim(),
+          phone:         document.getElementById('editPhone').value.trim(),
+          whatsapp_number: document.getElementById('editWhatsApp').value.trim(),
+          category_id:   document.getElementById('editCategory').value,
+          district_id:   document.getElementById('editDistrict').value,
+          awning_color:  document.getElementById('editAwningColor').value,
+        };
+
+        if (selectedLogoImage) {
+          updates.logo_url = selectedLogoImage;
+          // Also sync merchant avatar in Users DB & Session
+          try {
+            const updatedProfile = await NexovantaAuth.updateProfile({ avatar_url: selectedLogoImage });
+            Object.assign(session, updatedProfile);
+            NexovantaDB.Session.set(session);
+          } catch (error) {
+            showToast(error.message || 'Unable to save the profile avatar.');
+            return;
+          }
+        }
+
+        if (selectedBannerImage) {
+          updates.banner_url = selectedBannerImage;
+        }
+
+        // Recompute slug if name changed
+        if (updates.name !== myShop.name) {
+          updates.slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+
+        myShop = window.MarketplaceStore.updateShop(myShop.id, updates);
+
+        showToast('✅ Shop profile saved with uploaded pictures! Live in marketplace.');
+        showShopDashboard();
+
+        // Switch to products tab
+        const prodTabBtn = document.querySelector('.sf-tab-btn[data-tab="products"]');
+        if (prodTabBtn) prodTabBtn.click();
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // LOGOUT
+    // ──────────────────────────────────────────────────────────────────
+    window.logoutNexovanta = async function () {
+      try {
+        await NexovantaAuth.signOut();
+        window.location.replace('login.html');
+      } catch (error) {
+        showToast(error.message || 'Unable to sign out. Please try again.');
+      }
+    };
+
+    // ──────────────────────────────────────────────────────────────────
+    // TOAST
+    // ──────────────────────────────────────────────────────────────────
+    let _toastTimer;
+    function showToast(msg) {
+      let toast = document.getElementById('nexovantaToast');
+      if (toast) {
+        toast.style.display = '';
+        const span = document.getElementById('toastMessage');
+        if (span) span.textContent = msg;
+        clearTimeout(_toastTimer);
+        toast.classList.add('show');
+        _toastTimer = setTimeout(() => toast.classList.remove('show'), 3800);
+      }
+    }
+    window.showToast = showToast;
+
+    // ──────────────────────────────────────────────────────────────────
+    // XSS ESCAPE UTIL
+    // ──────────────────────────────────────────────────────────────────
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+  })();
+  </script>
+</body>
+</html>

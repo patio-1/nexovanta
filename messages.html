@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages & Groups | Nexovanta</title>
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="feed.css">
+  <link rel="stylesheet" href="messages.css">
+
+  <!-- DB & Auth Guard -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+  <script src="auth-guard.js"></script>
+</head>
+<body style="background-color: var(--bg-primary); overflow: hidden;">
+
+  <!-- Ambient Background Glows -->
+  <div class="glow-orb orb-1" style="top: -100px; left: -100px; opacity: 0.25;"></div>
+  <div class="glow-orb orb-2" style="bottom: -150px; right: -150px; opacity: 0.25;"></div>
+
+  <!-- =================================================================
+       TOP NAVIGATION BAR
+       ================================================================= -->
+  <header class="feed-navbar">
+    <div class="feed-nav-inner">
+      <!-- Left: Brand -->
+      <a href="index.html" class="feed-nav-brand">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="feed-nav-logo">
+        <div class="feed-nav-brand-text">
+          <span class="feed-nav-brand-title">NEXOVANTA</span>
+          <span class="feed-nav-brand-tag"><i class="fa-solid fa-comments"></i> Chuka Messages</span>
+        </div>
+      </a>
+
+      <!-- Centre: Search Navigation -->
+      <div class="feed-nav-search-wrap" id="navSearchContainer">
+        <i class="fa-solid fa-magnifying-glass feed-nav-search-icon"></i>
+        <input type="text" id="topNavSearchInput" class="feed-nav-search-input" placeholder="Search Chuka platform..." autocomplete="off">
+      </div>
+
+      <!-- Right: Main Nav Links & User Dropdown -->
+      <div class="feed-nav-actions">
+        <a href="feed.html" class="feed-nav-icon-btn" title="Community Feed">
+          <i class="fa-solid fa-house"></i>
+        </a>
+        <a href="messages.html" class="feed-nav-icon-btn active" title="Messages & Groups">
+          <i class="fa-solid fa-comments"></i>
+          <span id="navMsgBadge" class="feed-nav-badge" style="display: none;">0</span>
+        </a>
+        <a href="marketplace.html" class="feed-nav-icon-btn desktop-only" title="Marketplace">
+          <i class="fa-solid fa-store"></i>
+        </a>
+        <a href="events.html" class="feed-nav-icon-btn desktop-only" title="Events">
+          <i class="fa-solid fa-calendar-days"></i>
+        </a>
+        <a href="news.html" class="feed-nav-icon-btn desktop-only" title="News">
+          <i class="fa-solid fa-bullhorn"></i>
+        </a>
+
+        <!-- Notifications -->
+        <button id="notifBellBtn" class="feed-nav-icon-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notifBadge" class="feed-nav-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- Notification Dropdown -->
+        <div id="notifDropdown" class="feed-notif-dropdown">
+          <div class="feed-notif-header">
+            <span class="feed-notif-title"><i class="fa-solid fa-bell"></i> Notifications</span>
+            <button id="markAllReadBtn" class="feed-notif-mark-read">Mark all as read</button>
+          </div>
+          <div id="notifList" class="feed-notif-list"></div>
+        </div>
+
+        <!-- User Menu Trigger -->
+        <div style="position: relative;">
+          <button id="userMenuTrigger" class="feed-nav-user-trigger">
+            <div id="navUserAvatarWrap"></div>
+            <span id="navUsernameText" class="feed-nav-username-pill">@username</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.72rem; color: var(--text-dim); margin-right: 4px;"></i>
+          </button>
+
+          <!-- User Menu Dropdown -->
+          <div id="userMenuDropdown" class="feed-user-dropdown">
+            <div class="feed-dropdown-user-header">
+              <div id="dropdownUserAvatarWrap"></div>
+              <div style="min-width: 0;">
+                <div id="dropdownFullName" style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User Name</div>
+                <div id="dropdownUsername" style="font-size: 0.78rem; color: var(--accent-cyan);">@username</div>
+                <div id="dropdownRoleTitle" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">Role</div>
+              </div>
+            </div>
+
+            <a href="profile.html" id="dropdownProfileLink" class="feed-dropdown-item">
+              <i class="fa-solid fa-user"></i> My Profile
+            </a>
+            <a href="storefront.html" id="dropdownStorefrontLink" class="feed-dropdown-item" style="display: none;">
+              <i class="fa-solid fa-shop"></i> Storefront Manager
+            </a>
+            <a href="marketplace.html" class="feed-dropdown-item">
+              <i class="fa-solid fa-store"></i> Chuka Marketplace
+            </a>
+
+            <div class="feed-dropdown-divider"></div>
+
+            <button id="dropdownLogoutBtn" class="feed-dropdown-item logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       MAIN MESSAGING CONTAINER
+       ================================================================= -->
+  <main class="messages-page-wrapper">
+    <div class="messages-layout">
+
+      <!-- ── 1. LEFT SIDEBAR (Chats & Groups List) ── -->
+      <aside class="messages-sidebar" id="messagesSidebar">
+        <div class="messages-sidebar-header">
+          <div class="sidebar-title-row">
+            <h2 class="sidebar-heading">
+              <i class="fa-solid fa-comments"></i> Messages
+            </h2>
+            <div class="sidebar-header-actions">
+              <button id="btnNewDirectChat" class="btn-sidebar-action" title="New 1-on-1 Message">
+                <i class="fa-solid fa-user-plus"></i> Chat
+              </button>
+              <button id="btnNewGroupChat" class="btn-sidebar-action btn-sidebar-group" title="Create Group Chat">
+                <i class="fa-solid fa-users-viewfinder"></i> New Group
+              </button>
+            </div>
+          </div>
+
+          <!-- Search Chats & Groups -->
+          <div class="messages-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="chatSearchInput" class="messages-search-input" placeholder="Search conversations or groups...">
+          </div>
+
+          <!-- Filter Tabs -->
+          <div class="messages-filter-tabs">
+            <button class="msg-tab-pill active" data-filter="all">All</button>
+            <button class="msg-tab-pill" data-filter="direct">Direct (1:1)</button>
+            <button class="msg-tab-pill" data-filter="group">Groups</button>
+          </div>
+        </div>
+
+        <!-- Scrollable Conversations List -->
+        <div class="conversations-scroll-list" id="conversationsList">
+          <!-- Populated by JavaScript -->
+        </div>
+      </aside>
+
+      <!-- ── 2. MAIN ACTIVE CONVERSATION PANEL ── -->
+      <section class="messages-main-panel" id="messagesMainPanel">
+
+        <!-- A. Empty State (When no chat is selected) -->
+        <div class="chat-empty-state" id="chatEmptyState">
+          <div class="empty-state-icon-wrap">
+            <i class="fa-solid fa-comments"></i>
+          </div>
+          <h3 class="empty-state-title">Chuka Messages & Groups</h3>
+          <p class="empty-state-desc">
+            Connect directly with fellow students, local Ndagani merchants, and town residents. Create custom group chats for academic revision, hostel coordination, and campus societies!
+          </p>
+          <div class="empty-state-actions">
+            <button id="emptyStateNewChat" class="btn btn-outline btn-md">
+              <i class="fa-solid fa-user-plus"></i> Message Someone
+            </button>
+            <button id="emptyStateNewGroup" class="btn btn-primary btn-md">
+              <i class="fa-solid fa-users-viewfinder"></i> Create Community Group
+            </button>
+          </div>
+        </div>
+
+        <!-- B. Active Chat Window -->
+        <div id="chatActiveWindow" style="display: none; height: 100%; flex-direction: column;">
+          <!-- Active Chat Top Header -->
+          <div class="chat-active-header">
+            <div class="chat-header-user-info">
+              <!-- Back button on mobile -->
+              <button class="btn-back-to-list" id="btnBackToList" title="Back to Chats">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+
+              <div id="activeChatAvatarWrap"></div>
+              <div>
+                <div class="chat-header-name" id="activeChatTitle">Chat Title</div>
+                <div class="chat-header-sub" id="activeChatSubtitle">Status or members count</div>
+              </div>
+            </div>
+
+            <div class="chat-header-actions" id="activeChatActions">
+              <!-- Context actions (Profile link or Group info) populated by JS -->
+            </div>
+          </div>
+
+          <!-- Messages Stream History -->
+          <div class="chat-messages-stream" id="chatMessagesStream">
+            <!-- Messages rendered by JS -->
+          </div>
+
+          <!-- Bottom Message Composer -->
+          <div class="chat-composer-container">
+            <!-- File Attachment Preview Bar (shown when file is selected) -->
+            <div id="attachmentPreviewBar" class="attachment-preview-bar" style="display: none;">
+              <img id="attachmentThumbImg" class="attachment-thumb" src="" alt="Selected Photo">
+              <div class="attachment-info">
+                <span id="attachmentFileName" style="font-weight: 600;">photo.jpg</span>
+                <span style="font-size: 0.72rem; color: var(--text-dim); display: block;">Image ready to send</span>
+              </div>
+              <button type="button" id="btnCancelAttachment" class="btn-remove-attachment" title="Remove attachment">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </button>
+            </div>
+
+            <form id="messageComposerForm" class="composer-input-row">
+              <!-- Hidden File Input for Device Files -->
+              <input type="file" id="composerFileInput" accept="image/*" style="display: none;">
+              
+              <button type="button" id="btnTriggerFileInput" class="btn-composer-icon" title="Attach picture from device">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+
+              <input type="text" id="composerTextInput" class="composer-input-box" placeholder="Write a message... (Press Enter to send)" autocomplete="off">
+
+              <button type="submit" id="btnSendMsg" class="btn-send-message" title="Send message">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+
+            <!-- Quick Emojis -->
+            <div class="quick-emoji-strip">
+              <button class="quick-emoji-btn" data-emoji="👍">👍</button>
+              <button class="quick-emoji-btn" data-emoji="🔥">🔥</button>
+              <button class="quick-emoji-btn" data-emoji="❤️">❤️</button>
+              <button class="quick-emoji-btn" data-emoji="👏">👏</button>
+              <button class="quick-emoji-btn" data-emoji="🎉">🎉</button>
+              <button class="quick-emoji-btn" data-emoji="🚀">🚀</button>
+              <button class="quick-emoji-btn" data-emoji="📚">📚</button>
+              <button class="quick-emoji-btn" data-emoji="☕">☕</button>
+              <button class="quick-emoji-btn" data-emoji="😂">😂</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- =================================================================
+       MODAL 1: NEW DIRECT CHAT (USER SELECTOR)
+       ================================================================= -->
+  <div id="modalNewDirect" class="modal-backdrop-msg">
+    <div class="modal-card-msg">
+      <div class="modal-header-msg">
+        <h3 class="modal-title-msg">
+          <i class="fa-solid fa-user-plus" style="color: var(--accent-cyan);"></i> New Direct Message
+        </h3>
+        <button id="closeModalNewDirect" class="modal-close-pill">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-msg">
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">
+          Select any student, merchant, or resident to start a private 1-on-1 conversation:
+        </p>
+
+        <div class="messages-search-wrap" style="margin-bottom: 14px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="directUserSearchInput" class="messages-search-input" placeholder="Search people by name or username...">
+        </div>
+
+        <div id="directUsersList" style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto;">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL 2: CREATE NEW GROUP
+       ================================================================= -->
+  <div id="modalCreateGroup" class="modal-backdrop-msg">
+    <div class="modal-card-msg">
+      <div class="modal-header-msg">
+        <h3 class="modal-title-msg">
+          <i class="fa-solid fa-users-viewfinder" style="color: #fbbf24;"></i> Create Community Group
+        </h3>
+        <button id="closeModalCreateGroup" class="modal-close-pill">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-msg">
+        <form id="createGroupForm">
+          <div class="auth-form-group">
+            <label class="auth-label">Group Name <span style="color:#ef4444;">*</span></label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-users auth-input-icon"></i>
+              <input type="text" id="newGroupName" class="auth-input" placeholder="e.g. Ndagani CS Revision Group 💻" required maxlength="60">
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <label class="auth-label">Group Description / Purpose</label>
+            <textarea id="newGroupDesc" class="auth-input" rows="2" placeholder="What is this group for? (e.g. Revision notes, hostel coordination...)"></textarea>
+          </div>
+
+          <!-- Group Avatar Upload From File -->
+          <div class="auth-form-group">
+            <label class="auth-label">Group Picture <span style="color:var(--accent-cyan);font-size:0.78rem;">(Select from your device file)</span></label>
+            <div style="display: flex; align-items: center; gap: 14px; background: rgba(15, 23, 42, 0.65); padding: 10px 14px; border-radius: 12px; border: 1px dashed rgba(245, 158, 11, 0.35);">
+              <img id="newGroupPhotoPrev" src="Logo.jpg" style="width: 50px; height: 50px; border-radius: 14px; object-fit: cover; border: 2px solid #fbbf24;" alt="Group Photo">
+              <div>
+                <label for="newGroupFileInput" class="btn btn-outline btn-sm" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-camera"></i> Choose Group Photo
+                </label>
+                <input type="file" id="newGroupFileInput" accept="image/*" style="display: none;">
+                <span id="newGroupFileName" style="font-size: 0.74rem; color: var(--text-muted); display: block; margin-top: 4px;">PNG, JPG supported</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Member Checklist -->
+          <div class="auth-form-group" style="margin-top: 14px;">
+            <label class="auth-label">Select Initial Members to Invite</label>
+            <div class="member-picker-list" id="groupMemberPickerList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 16px;">
+            <i class="fa-solid fa-check"></i> Create Group & Start Chatting
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       MODAL 3: GROUP DETAILS & MEMBERS
+       ================================================================= -->
+  <div id="modalGroupInfo" class="modal-backdrop-msg">
+    <div class="modal-card-msg">
+      <div class="modal-header-msg">
+        <h3 class="modal-title-msg">
+          <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan);"></i> Group Details
+        </h3>
+        <button id="closeModalGroupInfo" class="modal-close-pill">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body-msg">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div id="groupInfoAvatarWrap" style="margin-bottom: 10px;"></div>
+          <h3 id="groupInfoName" style="font-family: var(--font-heading); font-size: 1.3rem; color: #fff; margin-bottom: 4px;">Group Name</h3>
+          <p id="groupInfoDesc" style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.4;"></p>
+        </div>
+
+        <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-users" style="color: var(--accent-cyan);"></i> Members (<span id="groupInfoMemberCount">0</span>)</span>
+        </h4>
+
+        <div id="groupInfoMembersList" style="display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; margin-bottom: 20px;">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Add Members Section -->
+        <div style="border-top: 1px solid var(--border-light); padding-top: 16px;">
+          <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin-bottom: 8px;">
+            <i class="fa-solid fa-user-plus" style="color: #10b981;"></i> Add People to this Group
+          </h4>
+          <div style="display: flex; gap: 8px;">
+            <select id="selectAddMember" class="auth-input auth-select" style="flex: 1;">
+              <option value="">Select a community member...</option>
+            </select>
+            <button id="btnAddMemberConfirm" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Leave Group Button -->
+        <div style="margin-top: 24px; text-align: center;">
+          <button id="btnLeaveGroup" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.35);">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Leave Group
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal -->
+  <div id="imageLightboxModal" class="modal-backdrop-msg" style="z-index: 2000;">
+    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+      <button id="closeLightbox" class="modal-close-pill" style="position: absolute; top: -16px; right: -16px; background: rgba(0,0,0,0.8);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img id="lightboxImg" src="" style="max-width: 100%; max-height: 85vh; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="nexovantaToast" class="toast-notice" style="display: none;">
+    <i class="fa-solid fa-circle-check toast-icon"></i>
+    <span class="toast-text" id="toastMessage"></span>
+  </div>
+
+  <!-- =================================================================
+       CLIENT SCRIPT
+       ================================================================= -->
+  <script>
+  (function () {
+    'use strict';
+
+    let session = null;
+    let currentUser = null;
+    let activeChatId = null;
+    let currentFilter = 'all';
+    let attachedImageDataUrl = null;
+    let newGroupPhotoDataUrl = null;
+
+    // ──────────────────────────────────────────────────────────────────
+    // BOOT & AUTH
+    // ──────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      session = NexovantaDB.Session.get();
+      if (!session || !session.loggedIn) {
+        window.location.href = 'login.html?return=' + encodeURIComponent(window.location.pathname + window.location.search);
+        return;
+      }
+
+      currentUser = NexovantaDB.Users.getById(session.id);
+      if (!currentUser) {
+        currentUser = {
+          id: session.id,
+          username: session.username,
+          full_name: session.full_name || session.username,
+          avatar_url: session.avatar_url || null,
+          role: session.role || 'student'
+        };
+      }
+
+      setupNavigation();
+      setupSidebarFilters();
+      setupComposer();
+      setupModals();
+      loadConversations();
+
+      // Check URL parameters for direct chat, specific chat, or new group
+      handleUrlParams();
+
+      // Polling or auto-refresh to check new incoming messages
+      setInterval(() => {
+        refreshChatsSilently();
+      }, 4000);
+    });
+
+    // ──────────────────────────────────────────────────────────────────
+    // NAVIGATION & USER DROPDOWN
+    // ──────────────────────────────────────────────────────────────────
+    function setupNavigation() {
+      // Set User Pill
+      const usernameText = document.getElementById('navUsernameText');
+      if (usernameText) usernameText.textContent = `@${currentUser.username}`;
+
+      const avatarWrap = document.getElementById('navUserAvatarWrap');
+      if (avatarWrap) avatarWrap.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 32);
+
+      // Dropdown info
+      const dropAvatar = document.getElementById('dropdownUserAvatarWrap');
+      if (dropAvatar) dropAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 46);
+
+      const dropName = document.getElementById('dropdownFullName');
+      if (dropName) dropName.textContent = currentUser.full_name || currentUser.username;
+
+      const dropHandle = document.getElementById('dropdownUsername');
+      if (dropHandle) dropHandle.textContent = `@${currentUser.username}`;
+
+      const dropRole = document.getElementById('dropdownRoleTitle');
+      if (dropRole) {
+        dropRole.textContent = currentUser.role === 'business' ? 'Chuka Merchant 💼'
+                              : currentUser.role === 'resident' ? 'Chuka Resident 🏘️'
+                              : 'Chuka Student 🎓';
+      }
+
+      // If business, show Storefront Manager link
+      if (currentUser.role === 'business') {
+        const sfLink = document.getElementById('dropdownStorefrontLink');
+        if (sfLink) sfLink.style.display = 'flex';
+      }
+
+      // User Menu toggle
+      const trigger = document.getElementById('userMenuTrigger');
+      const dropdown = document.getElementById('userMenuDropdown');
+      if (trigger && dropdown) {
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', () => dropdown.classList.remove('show'));
+      }
+
+      // Logout
+      const logoutBtn = document.getElementById('dropdownLogoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          NexovantaAuth.signOut().then(() => window.location.replace('login.html'));
+        });
+      }
+
+      // Notifications bell
+      setupNotificationBell();
+    }
+
+    function setupNotificationBell() {
+      const bell = document.getElementById('notifBellBtn');
+      const notifDrop = document.getElementById('notifDropdown');
+      const notifBadge = document.getElementById('notifBadge');
+      const notifList = document.getElementById('notifList');
+      const markAllBtn = document.getElementById('markAllReadBtn');
+
+      function updateNotifCount() {
+        const count = NexovantaDB.Notifications.getUnreadCount(currentUser.id);
+        if (notifBadge) {
+          notifBadge.style.display = count > 0 ? 'inline-block' : 'none';
+          notifBadge.textContent = count > 9 ? '9+' : count;
+        }
+      }
+
+      function renderNotifications() {
+        const notifs = NexovantaDB.Notifications.getByUser(currentUser.id);
+        if (!notifList) return;
+        if (!notifs.length) {
+          notifList.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-dim);font-size:0.85rem;">No notifications yet</div>`;
+          return;
+        }
+        notifList.innerHTML = notifs.map(n => `
+          <div class="feed-notif-item ${!n.read_at ? 'unread' : ''}">
+            <div style="font-size:0.84rem;color:#fff;">${esc(n.message)}</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px;">${NexovantaDB.timeAgo(n.created_at)}</div>
+          </div>
+        `).join('');
+      }
+
+      if (bell && notifDrop) {
+        bell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          notifDrop.classList.toggle('show');
+          if (notifDrop.classList.contains('show')) {
+            renderNotifications();
+          }
+        });
+        document.addEventListener('click', () => notifDrop.classList.remove('show'));
+      }
+
+      if (markAllBtn) {
+        markAllBtn.addEventListener('click', () => {
+          NexovantaDB.Notifications.markAllRead(currentUser.id);
+          updateNotifCount();
+          renderNotifications();
+        });
+      }
+
+      updateNotifCount();
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // URL PARAMETER HANDLING
+    // ──────────────────────────────────────────────────────────────────
+    function handleUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const targetUser = params.get('user');
+      const targetChat = params.get('chat');
+      const newGroupFlag = params.get('newgroup');
+
+      if (targetUser) {
+        const user = NexovantaDB.Users.getByUsername(targetUser);
+        if (user && user.id !== currentUser.id) {
+          const directChat = NexovantaDB.Messages.getOrCreateDirectChat(currentUser.id, user.id);
+          if (directChat) {
+            selectChat(directChat.id);
+            return;
+          }
+        }
+      }
+
+      if (targetChat) {
+        selectChat(targetChat);
+        return;
+      }
+
+      if (newGroupFlag) {
+        openCreateGroupModal();
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // CONVERSATIONS LIST
+    // ──────────────────────────────────────────────────────────────────
+    function loadConversations() {
+      const listEl = document.getElementById('conversationsList');
+      if (!listEl) return;
+
+      const chats = NexovantaDB.Messages.getChats(currentUser.id);
+
+      // Filter by currentFilter
+      const searchVal = (document.getElementById('chatSearchInput')?.value || '').toLowerCase().trim();
+      let filtered = chats.filter(c => {
+        if (currentFilter === 'direct' && c.type !== 'direct') return false;
+        if (currentFilter === 'group' && c.type !== 'group') return false;
+
+        if (searchVal) {
+          if (c.type === 'group') {
+            return c.name.toLowerCase().includes(searchVal) || (c.description && c.description.toLowerCase().includes(searchVal));
+          } else {
+            const partner = c.recipientUser;
+            return (
+              (partner?.full_name && partner.full_name.toLowerCase().includes(searchVal)) ||
+              (partner?.username && partner.username.toLowerCase().includes(searchVal))
+            );
+          }
+        }
+        return true;
+      });
+
+      // Update Nav Unread Badge
+      const totalUnread = NexovantaDB.Messages.getTotalUnreadCount(currentUser.id);
+      const navBadge = document.getElementById('navMsgBadge');
+      if (navBadge) {
+        navBadge.style.display = totalUnread > 0 ? 'inline-block' : 'none';
+        navBadge.textContent = totalUnread > 9 ? '9+' : totalUnread;
+      }
+
+      if (!filtered.length) {
+        listEl.innerHTML = `
+          <div class="empty-chat-list">
+            <i class="fa-solid fa-comments"></i>
+            <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">No chats found</div>
+            <div style="font-size: 0.8rem;">Click "+ Chat" or "+ New Group" above to start connecting!</div>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(chat => {
+        const isActive = chat.id === activeChatId;
+        const isGroup = chat.type === 'group';
+
+        let avatarHtml = '';
+        let nameTitle = '';
+
+        if (isGroup) {
+          if (chat.avatar_url) {
+            avatarHtml = `<img src="${esc(chat.avatar_url)}" class="chat-avatar-img" alt="${esc(chat.name)}" style="border-radius:14px;border:2px solid #fbbf24;">`;
+          } else {
+            avatarHtml = `
+              <div class="group-avatar-stack">
+                <i class="fa-solid fa-users"></i>
+              </div>
+            `;
+          }
+          nameTitle = esc(chat.name);
+        } else {
+          const partner = chat.recipientUser;
+          const uname = partner?.username || 'user';
+          if (partner?.avatar_url) {
+            avatarHtml = `<img src="${esc(partner.avatar_url)}" class="chat-avatar-img" alt="@${esc(uname)}"><div class="online-status-dot"></div>`;
+          } else {
+            avatarHtml = `
+              <div style="position:relative;">
+                ${NexovantaDB.getAvatarHtml(uname, null, 48)}
+                <div class="online-status-dot"></div>
+              </div>
+            `;
+          }
+          nameTitle = esc(partner?.full_name || uname);
+        }
+
+        const snippet = chat.last_message ? esc(chat.last_message) : 'Start conversation...';
+        const isUnread = chat.unreadCount > 0;
+        const timeDisplay = chat.last_message_at ? NexovantaDB.timeAgo(chat.last_message_at) : '';
+
+        return `
+          <div class="chat-item-card ${isActive ? 'active' : ''}" data-chat-id="${chat.id}">
+            <div class="chat-avatar-container">
+              ${avatarHtml}
+            </div>
+            <div class="chat-item-content">
+              <div class="chat-item-top">
+                <span class="chat-item-name">${nameTitle}</span>
+                <span class="chat-item-time">${timeDisplay}</span>
+              </div>
+              <div class="chat-item-bottom">
+                <div class="chat-item-snippet ${isUnread ? 'unread' : ''}">
+                  ${isGroup ? '<span class="chat-type-badge"><i class="fa-solid fa-users"></i> GROUP</span>' : ''}
+                  ${snippet}
+                </div>
+                ${isUnread ? `<span class="chat-unread-badge">${chat.unreadCount}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Click event for conversation cards
+      listEl.querySelectorAll('.chat-item-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const cid = card.getAttribute('data-chat-id');
+          selectChat(cid);
+        });
+      });
+    }
+
+    function refreshChatsSilently() {
+      // Reload list without disturbing active conversation scroll
+      loadConversations();
+      if (activeChatId) {
+        // Also re-fetch messages for active chat if count changed
+        const msgs = NexovantaDB.Messages.getMessages(activeChatId);
+        const stream = document.getElementById('chatMessagesStream');
+        if (stream && stream.childElementCount !== msgs.length) {
+          renderMessages(activeChatId);
+          NexovantaDB.Messages.markAsRead(activeChatId, currentUser.id);
+        }
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // SELECT & DISPLAY CHAT
+    // ──────────────────────────────────────────────────────────────────
+    function selectChat(chatId) {
+      activeChatId = chatId;
+      NexovantaDB.Messages.markAsRead(chatId, currentUser.id);
+
+      // On mobile: hide sidebar and show chat
+      const sidebar = document.getElementById('messagesSidebar');
+      if (sidebar) sidebar.classList.add('hidden-mobile');
+
+      loadConversations();
+
+      const emptyState = document.getElementById('chatEmptyState');
+      const chatWindow = document.getElementById('chatActiveWindow');
+      if (emptyState) emptyState.style.display = 'none';
+      if (chatWindow) chatWindow.style.display = 'flex';
+
+      const chat = NexovantaDB.Messages.getChatById(chatId, currentUser.id);
+      if (!chat) return;
+
+      const isGroup = chat.type === 'group';
+      const avatarWrap = document.getElementById('activeChatAvatarWrap');
+      const titleEl = document.getElementById('activeChatTitle');
+      const subEl = document.getElementById('activeChatSubtitle');
+      const actionsEl = document.getElementById('activeChatActions');
+
+      if (isGroup) {
+        if (chat.avatar_url) {
+          avatarWrap.innerHTML = `<img src="${esc(chat.avatar_url)}" class="chat-header-avatar" style="border-radius:14px;border:2px solid #fbbf24;" alt="${esc(chat.name)}">`;
+        } else {
+          avatarWrap.innerHTML = `<div class="chat-header-group-icon"><i class="fa-solid fa-users"></i></div>`;
+        }
+        titleEl.innerHTML = `${esc(chat.name)} <span class="chat-type-badge" style="font-size:0.7rem;vertical-align:middle;">GROUP</span>`;
+        subEl.innerHTML = `<i class="fa-solid fa-circle" style="color:#10b981;font-size:0.55rem;"></i> ${chat.memberCount} Community Members`;
+
+        actionsEl.innerHTML = `
+          <button id="btnOpenGroupInfo" class="btn-header-action btn-group-manage">
+            <i class="fa-solid fa-users-gear"></i> Group Info & Members
+          </button>
+        `;
+        document.getElementById('btnOpenGroupInfo')?.addEventListener('click', () => openGroupInfoModal(chat.id));
+      } else {
+        const partner = chat.recipientUser;
+        const uname = partner?.username || 'user';
+        if (partner?.avatar_url) {
+          avatarWrap.innerHTML = `<img src="${esc(partner.avatar_url)}" class="chat-header-avatar" alt="@${esc(uname)}">`;
+        } else {
+          avatarWrap.innerHTML = NexovantaDB.getAvatarHtml(uname, null, 46);
+        }
+        titleEl.textContent = partner?.full_name || uname;
+
+        const roleText = partner?.role === 'business' ? 'Chuka Merchant 💼'
+                        : partner?.role === 'resident' ? 'Chuka Resident 🏘️'
+                        : 'Chuka Student 🎓';
+        subEl.innerHTML = `<span style="color:var(--accent-cyan);">@${esc(uname)}</span> • ${roleText}`;
+
+        actionsEl.innerHTML = `
+          <a href="profile.html?user=${encodeURIComponent(uname)}" class="btn-header-action" title="View Full Profile">
+            <i class="fa-solid fa-user"></i> View Profile
+          </a>
+        `;
+      }
+
+      renderMessages(chatId);
+
+      // Focus input
+      setTimeout(() => {
+        document.getElementById('composerTextInput')?.focus();
+      }, 100);
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // RENDER MESSAGES IN ACTIVE STREAM
+    // ──────────────────────────────────────────────────────────────────
+    function renderMessages(chatId) {
+      const stream = document.getElementById('chatMessagesStream');
+      if (!stream) return;
+
+      const messages = NexovantaDB.Messages.getMessages(chatId);
+      const chat = NexovantaDB.Messages.getChatById(chatId, currentUser.id);
+      const isGroup = chat && chat.type === 'group';
+
+      if (!messages.length) {
+        stream.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+            <div style="font-size:2rem;margin-bottom:10px;opacity:0.5;">💬</div>
+            <h4 style="color:#fff;margin-bottom:4px;">No messages yet</h4>
+            <p style="font-size:0.85rem;">Be the first to say hello!</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      let lastDate = null;
+
+      messages.forEach(msg => {
+        const msgDate = new Date(msg.created_at).toLocaleDateString('en-KE', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        // Date Divider
+        if (msgDate !== lastDate) {
+          html += `
+            <div class="chat-date-divider">
+              <span>${msgDate}</span>
+            </div>
+          `;
+          lastDate = msgDate;
+        }
+
+        // System message
+        if (msg.is_system) {
+          html += `
+            <div class="chat-system-msg">
+              <i class="fa-solid fa-circle-info" style="color:var(--accent-cyan);margin-right:4px;"></i>
+              ${esc(msg.content)}
+            </div>
+          `;
+          return;
+        }
+
+        const isOut = msg.sender_id === currentUser.id;
+        const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const avatarHtml = msg.sender_avatar
+          ? `<img src="${esc(msg.sender_avatar)}" class="msg-sender-avatar" alt="@${esc(msg.sender_username)}">`
+          : NexovantaDB.getAvatarHtml(msg.sender_username, null, 34);
+
+        const mediaHtml = msg.media_url
+          ? `<img src="${esc(msg.media_url)}" class="msg-media-img lightbox-trigger" data-full="${esc(msg.media_url)}" alt="Chat photo">`
+          : '';
+
+        html += `
+          <div class="msg-row ${isOut ? 'out' : 'in'}">
+            ${!isOut ? avatarHtml : ''}
+            <div class="msg-bubble-wrap">
+              ${isGroup && !isOut ? `<div class="msg-sender-tag">@${esc(msg.sender_username)}</div>` : ''}
+              <div class="msg-bubble">
+                ${mediaHtml}
+                ${msg.content ? esc(msg.content) : ''}
+              </div>
+              <div class="msg-meta-bar">
+                <span>${timeStr}</span>
+                ${isOut ? '<i class="fa-solid fa-check-double" style="color:#00f5a0;font-size:0.65rem;"></i>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      stream.innerHTML = html;
+
+      // Attach Lightbox triggers
+      stream.querySelectorAll('.lightbox-trigger').forEach(img => {
+        img.addEventListener('click', () => {
+          const src = img.getAttribute('data-full');
+          openLightbox(src);
+        });
+      });
+
+      // Scroll to bottom
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // COMPOSER & FILE ATTACHMENTS
+    // ──────────────────────────────────────────────────────────────────
+    function setupComposer() {
+      const form = document.getElementById('messageComposerForm');
+      const textInput = document.getElementById('composerTextInput');
+      const fileInput = document.getElementById('composerFileInput');
+      const btnTriggerFile = document.getElementById('btnTriggerFileInput');
+      const previewBar = document.getElementById('attachmentPreviewBar');
+      const thumbImg = document.getElementById('attachmentThumbImg');
+      const fileNameEl = document.getElementById('attachmentFileName');
+      const cancelBtn = document.getElementById('btnCancelAttachment');
+
+      // Trigger file dialog
+      btnTriggerFile?.addEventListener('click', () => fileInput?.click());
+
+      // File selected
+      fileInput?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          const dataUrl = await processImageFile(file, 900, 0.85);
+          attachedImageDataUrl = dataUrl;
+          thumbImg.src = dataUrl;
+          fileNameEl.textContent = file.name;
+          previewBar.style.display = 'flex';
+          textInput.focus();
+        } catch (err) {
+          showToast(err.message || 'Error loading image file');
+        }
+      });
+
+      // Cancel file
+      cancelBtn?.addEventListener('click', () => {
+        attachedImageDataUrl = null;
+        fileInput.value = '';
+        previewBar.style.display = 'none';
+      });
+
+      // Quick emojis
+      document.querySelectorAll('.quick-emoji-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const emoji = btn.getAttribute('data-emoji');
+          textInput.value = (textInput.value || '') + emoji;
+          textInput.focus();
+        });
+      });
+
+      // Send form
+      form?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!activeChatId) {
+          showToast('Select a conversation first.');
+          return;
+        }
+
+        const content = textInput.value.trim();
+        const media = attachedImageDataUrl;
+
+        if (!content && !media) return;
+
+        NexovantaDB.Messages.sendMessage({
+          chatId: activeChatId,
+          senderId: currentUser.id,
+          content: content,
+          media_url: media,
+          media_type: media ? 'image' : null
+        });
+
+        // Reset inputs
+        textInput.value = '';
+        attachedImageDataUrl = null;
+        if (fileInput) fileInput.value = '';
+        if (previewBar) previewBar.style.display = 'none';
+
+        // Re-render
+        renderMessages(activeChatId);
+        loadConversations();
+      });
+    }
+
+    // Helper: compress/resize image file
+    function processImageFile(file, maxDimension = 900, quality = 0.85) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+          return reject(new Error('Please select an image file (PNG, JPG, WebP).'));
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => reject(new Error('Failed to load image file.'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Failed to read image file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // SIDEBAR FILTERS & ACTIONS
+    // ──────────────────────────────────────────────────────────────────
+    function setupSidebarFilters() {
+      // Filter Tabs
+      document.querySelectorAll('.msg-tab-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.msg-tab-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.getAttribute('data-filter');
+          loadConversations();
+        });
+      });
+
+      // Search Filter
+      document.getElementById('chatSearchInput')?.addEventListener('input', () => {
+        loadConversations();
+      });
+
+      // Mobile Back to list
+      document.getElementById('btnBackToList')?.addEventListener('click', () => {
+        const sidebar = document.getElementById('messagesSidebar');
+        if (sidebar) sidebar.classList.remove('hidden-mobile');
+        activeChatId = null;
+        document.getElementById('chatActiveWindow').style.display = 'none';
+        document.getElementById('chatEmptyState').style.display = 'flex';
+        loadConversations();
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // MODALS SETUP
+    // ──────────────────────────────────────────────────────────────────
+    function setupModals() {
+      // Direct Modal
+      const modalDirect = document.getElementById('modalNewDirect');
+      const btnOpenDirect = document.getElementById('btnNewDirectChat');
+      const btnEmptyDirect = document.getElementById('emptyStateNewChat');
+      const closeDirect = document.getElementById('closeModalNewDirect');
+
+      function openDirectModal() {
+        modalDirect.classList.add('active');
+        populateDirectUsersList();
+      }
+      function closeDirectModal() {
+        modalDirect.classList.remove('active');
+      }
+
+      btnOpenDirect?.addEventListener('click', openDirectModal);
+      btnEmptyDirect?.addEventListener('click', openDirectModal);
+      closeDirect?.addEventListener('click', closeDirectModal);
+
+      // Search in direct users modal
+      document.getElementById('directUserSearchInput')?.addEventListener('input', (e) => {
+        populateDirectUsersList(e.target.value.toLowerCase().trim());
+      });
+
+      // Group Modal
+      const modalGroup = document.getElementById('modalCreateGroup');
+      const btnOpenGroup = document.getElementById('btnNewGroupChat');
+      const btnEmptyGroup = document.getElementById('emptyStateNewGroup');
+      const closeGroup = document.getElementById('closeModalCreateGroup');
+
+      window.openCreateGroupModal = function () {
+        modalGroup.classList.add('active');
+        populateGroupMemberPicker();
+      };
+      function closeGroupModal() {
+        modalGroup.classList.remove('active');
+        document.getElementById('createGroupForm').reset();
+        newGroupPhotoDataUrl = null;
+        document.getElementById('newGroupPhotoPrev').src = 'Logo.jpg';
+        document.getElementById('newGroupFileName').textContent = 'PNG, JPG supported';
+      }
+
+      btnOpenGroup?.addEventListener('click', window.openCreateGroupModal);
+      btnEmptyGroup?.addEventListener('click', window.openCreateGroupModal);
+      closeGroup?.addEventListener('click', closeGroupModal);
+
+      // Group Photo File Input
+      const groupFileInput = document.getElementById('newGroupFileInput');
+      groupFileInput?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await processImageFile(file, 600, 0.85);
+          newGroupPhotoDataUrl = dataUrl;
+          document.getElementById('newGroupPhotoPrev').src = dataUrl;
+          document.getElementById('newGroupFileName').textContent = file.name;
+        } catch (err) {
+          showToast(err.message || 'Error loading group picture');
+        }
+      });
+
+      // Create Group Form Submit
+      document.getElementById('createGroupForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newGroupName').value.trim();
+        const desc = document.getElementById('newGroupDesc').value.trim();
+
+        if (!name) {
+          showToast('Please provide a group name.');
+          return;
+        }
+
+        // Collect selected member IDs
+        const selectedMembers = [];
+        document.querySelectorAll('#groupMemberPickerList input[type="checkbox"]:checked').forEach(cb => {
+          selectedMembers.push(cb.value);
+        });
+
+        const newGroup = NexovantaDB.Messages.createGroupChat(currentUser.id, {
+          name: name,
+          description: desc,
+          avatar_url: newGroupPhotoDataUrl,
+          member_ids: selectedMembers
+        });
+
+        closeGroupModal();
+        showToast(`🎉 Group "${name}" created successfully!`);
+        selectChat(newGroup.id);
+      });
+
+      // Group Info Modal Close
+      document.getElementById('closeModalGroupInfo')?.addEventListener('click', () => {
+        document.getElementById('modalGroupInfo').classList.remove('active');
+      });
+
+      // Lightbox Close
+      document.getElementById('closeLightbox')?.addEventListener('click', () => {
+        document.getElementById('imageLightboxModal').classList.remove('active');
+      });
+
+      // Close modals on backdrop click
+      [modalDirect, modalGroup, document.getElementById('modalGroupInfo'), document.getElementById('imageLightboxModal')].forEach(m => {
+        m?.addEventListener('click', (e) => {
+          if (e.target === m) m.classList.remove('active');
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // DIRECT USERS SELECTOR
+    // ──────────────────────────────────────────────────────────────────
+    function populateDirectUsersList(query = '') {
+      const container = document.getElementById('directUsersList');
+      if (!container) return;
+
+      const users = NexovantaDB.Users.getAll().filter(u => u.id !== currentUser.id);
+
+      const filtered = users.filter(u => {
+        if (!query) return true;
+        return (
+          (u.full_name && u.full_name.toLowerCase().includes(query)) ||
+          (u.username && u.username.toLowerCase().includes(query)) ||
+          (u.role && u.role.toLowerCase().includes(query))
+        );
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:0.85rem;">No members match "${esc(query)}"</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(u => {
+        const rolePill = u.role === 'business' ? '<span class="feed-role-badge business" style="font-size:0.7rem;">Merchant 💼</span>'
+                        : u.role === 'resident' ? '<span class="feed-role-badge resident" style="font-size:0.7rem;">Resident 🏘️</span>'
+                        : '<span class="feed-role-badge student" style="font-size:0.7rem;">Student 🎓</span>';
+
+        return `
+          <div class="chat-item-card" data-user-id="${u.id}" style="padding:10px 12px;background:rgba(255,255,255,0.03);">
+            <div class="chat-avatar-container">
+              ${u.avatar_url ? `<img src="${esc(u.avatar_url)}" class="chat-avatar-img" alt="@${esc(u.username)}">` : NexovantaDB.getAvatarHtml(u.username, null, 42)}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;color:#fff;font-size:0.9rem;">${esc(u.full_name || u.username)}</div>
+              <div style="font-size:0.78rem;color:var(--accent-cyan);">@${esc(u.username)}</div>
+            </div>
+            <div>
+              ${rolePill}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.chat-item-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const uid = card.getAttribute('data-user-id');
+          const chat = NexovantaDB.Messages.getOrCreateDirectChat(currentUser.id, uid);
+          document.getElementById('modalNewDirect').classList.remove('active');
+          if (chat) selectChat(chat.id);
+        });
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // GROUP MEMBER PICKER (FOR GROUP CREATION)
+    // ──────────────────────────────────────────────────────────────────
+    function populateGroupMemberPicker() {
+      const container = document.getElementById('groupMemberPickerList');
+      if (!container) return;
+
+      const users = NexovantaDB.Users.getAll().filter(u => u.id !== currentUser.id);
+
+      container.innerHTML = users.map(u => {
+        const roleTitle = u.role === 'business' ? 'Merchant' : u.role === 'resident' ? 'Resident' : 'Student';
+        return `
+          <label class="member-picker-item">
+            <input type="checkbox" value="${u.id}">
+            ${u.avatar_url ? `<img src="${esc(u.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">` : NexovantaDB.getAvatarHtml(u.username, null, 28)}
+            <div style="flex:1;min-width:0;">
+              <span style="font-weight:600;color:#fff;font-size:0.85rem;">${esc(u.full_name || u.username)}</span>
+              <span style="font-size:0.72rem;color:var(--text-dim);margin-left:6px;">@${esc(u.username)} • ${roleTitle}</span>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // GROUP INFO & MEMBERS MODAL
+    // ──────────────────────────────────────────────────────────────────
+    function openGroupInfoModal(chatId) {
+      const chat = NexovantaDB.Messages.getChatById(chatId, currentUser.id);
+      if (!chat || chat.type !== 'group') return;
+
+      const modal = document.getElementById('modalGroupInfo');
+      modal.classList.add('active');
+
+      const avatarWrap = document.getElementById('groupInfoAvatarWrap');
+      if (chat.avatar_url) {
+        avatarWrap.innerHTML = `<img src="${esc(chat.avatar_url)}" style="width:72px;height:72px;border-radius:20px;object-fit:cover;border:3px solid #fbbf24;" alt="${esc(chat.name)}">`;
+      } else {
+        avatarWrap.innerHTML = `
+          <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg, rgba(245,158,11,0.25), rgba(0,210,255,0.25));border:2px solid #fbbf24;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fbbf24;">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        `;
+      }
+
+      document.getElementById('groupInfoName').textContent = chat.name;
+      document.getElementById('groupInfoDesc').textContent = chat.description || 'Community discussion group';
+      document.getElementById('groupInfoMemberCount').textContent = chat.memberCount;
+
+      // Render Current Members
+      const membersList = document.getElementById('groupInfoMembersList');
+      const allUsers = NexovantaDB.Users.getAll();
+      const groupMembers = (chat.members || []).map(mid => allUsers.find(u => u.id === mid)).filter(Boolean);
+
+      membersList.innerHTML = groupMembers.map(m => {
+        const isAdmin = chat.admin_ids && chat.admin_ids.includes(m.id);
+        const isMe = m.id === currentUser.id;
+
+        return `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);">
+            ${m.avatar_url ? `<img src="${esc(m.avatar_url)}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">` : NexovantaDB.getAvatarHtml(m.username, null, 34)}
+            <div style="flex:1;min-width:0;">
+              <span style="font-weight:700;color:#fff;font-size:0.86rem;">${esc(m.full_name || m.username)} ${isMe ? '<span style="color:var(--accent-cyan);font-weight:400;font-size:0.75rem;">(You)</span>' : ''}</span>
+              <span style="font-size:0.75rem;color:var(--text-dim);display:block;">@${esc(m.username)}</span>
+            </div>
+            ${isAdmin ? '<span class="chat-type-badge" style="background:rgba(245,158,11,0.2);color:#fbbf24;font-size:0.68rem;">ADMIN</span>' : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Populate "Add Members" dropdown with users not yet in group
+      const selectAdd = document.getElementById('selectAddMember');
+      const nonMembers = allUsers.filter(u => !(chat.members || []).includes(u.id));
+
+      if (nonMembers.length) {
+        selectAdd.innerHTML = `<option value="">Select a community member...</option>` +
+          nonMembers.map(u => `<option value="${u.id}">${esc(u.full_name || u.username)} (@${esc(u.username)})</option>`).join('');
+        document.getElementById('btnAddMemberConfirm').disabled = false;
+      } else {
+        selectAdd.innerHTML = `<option value="">All community members are in this group</option>`;
+        document.getElementById('btnAddMemberConfirm').disabled = true;
+      }
+
+      // Add Member action
+      const btnAdd = document.getElementById('btnAddMemberConfirm');
+      btnAdd.onclick = () => {
+        const selectedId = selectAdd.value;
+        if (!selectedId) return;
+
+        NexovantaDB.Messages.addGroupMember(chat.id, selectedId, currentUser.id);
+        showToast('Member added to group!');
+        openGroupInfoModal(chat.id); // re-render
+        renderMessages(chat.id);
+        loadConversations();
+      };
+
+      // Leave Group action
+      const btnLeave = document.getElementById('btnLeaveGroup');
+      btnLeave.onclick = () => {
+        if (confirm(`Are you sure you want to leave "${chat.name}"?`)) {
+          NexovantaDB.Messages.removeGroupMember(chat.id, currentUser.id, currentUser.id);
+          modal.classList.remove('active');
+          activeChatId = null;
+          document.getElementById('chatActiveWindow').style.display = 'none';
+          document.getElementById('chatEmptyState').style.display = 'flex';
+          loadConversations();
+          showToast(`You left "${chat.name}".`);
+        }
+      };
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // LIGHTBOX
+    // ──────────────────────────────────────────────────────────────────
+    function openLightbox(src) {
+      const modal = document.getElementById('imageLightboxModal');
+      const img = document.getElementById('lightboxImg');
+      if (modal && img) {
+        img.src = src;
+        modal.classList.add('active');
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // TOAST & UTILITIES
+    // ──────────────────────────────────────────────────────────────────
+    let _toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('nexovantaToast');
+      const span = document.getElementById('toastMessage');
+      if (toast && span) {
+        span.textContent = msg;
+        toast.style.display = 'flex';
+        clearTimeout(_toastTimer);
+        toast.classList.add('show');
+        _toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+          toast.style.display = 'none';
+        }, 3600);
+      }
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+  })();
+  </script>
+</body>
+</html>

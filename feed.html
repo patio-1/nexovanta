@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Feed | Nexovanta Chuka Community</title>
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="feed.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+  <script src="auth-guard.js"></script>
+</head>
+<body class="feed-body">
+
+  <!-- =================================================================
+       BACKGROUND VIDEO & OVERLAY
+       ================================================================= -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <!-- =================================================================
+       TOP NAVIGATION BAR
+       ================================================================= -->
+  <header class="feed-navbar">
+    <div class="feed-nav-inner">
+      <!-- Left: Logo & Brand -->
+      <a href="index.html" class="feed-nav-brand">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="feed-nav-logo">
+        <div class="feed-nav-brand-text">
+          <span class="feed-nav-brand-title">NEXOVANTA</span>
+          <span class="feed-nav-brand-tag"><i class="fa-solid fa-users"></i> Chuka Feed</span>
+        </div>
+      </a>
+
+      <!-- Centre: Search input with live filter -->
+      <div class="feed-nav-search-wrap" id="navSearchContainer">
+        <i class="fa-solid fa-magnifying-glass feed-nav-search-icon"></i>
+        <input type="text" id="feedSearchInput" class="feed-nav-search-input" placeholder="Search Chuka community, posts, hashtags..." autocomplete="off">
+        <div class="feed-search-results-dropdown" id="searchResultsDropdown"></div>
+      </div>
+
+      <!-- Right: Navigation Icons, Notifications, User Menu -->
+      <div class="feed-nav-actions">
+        <a href="feed.html" class="feed-nav-icon-btn active" title="News Feed">
+          <i class="fa-solid fa-house"></i>
+        </a>
+        <a href="videos.html" class="feed-nav-icon-btn desktop-only" title="Videos">
+          <i class="fa-solid fa-circle-play"></i>
+        </a>
+        <a href="events.html" class="feed-nav-icon-btn desktop-only" title="Events">
+          <i class="fa-solid fa-calendar-days"></i>
+        </a>
+        <a href="news.html" class="feed-nav-icon-btn desktop-only" title="Campus & Town News">
+          <i class="fa-solid fa-bullhorn"></i>
+        </a>
+        <a href="marketplace.html" class="feed-nav-icon-btn desktop-only" title="Virtual Marketplace">
+          <i class="fa-solid fa-store"></i>
+        </a>
+
+        <!-- Notification Bell -->
+        <button id="notifBellBtn" class="feed-nav-icon-btn" title="Notifications" aria-label="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notifBadge" class="feed-nav-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- Notification Dropdown Panel -->
+        <div id="notifDropdown" class="feed-notif-dropdown">
+          <div class="feed-notif-header">
+            <span class="feed-notif-title"><i class="fa-solid fa-bell"></i> Notifications</span>
+            <button id="markAllReadBtn" class="feed-notif-mark-read">Mark all as read</button>
+          </div>
+          <div id="notifList" class="feed-notif-list">
+            <!-- Dynamic Notifications Rendered Here -->
+          </div>
+        </div>
+
+        <!-- User Profile Dropdown Trigger -->
+        <div style="position: relative;">
+          <button id="userMenuTrigger" class="feed-nav-user-trigger" aria-label="User Account Menu">
+            <div id="navUserAvatarWrap"></div>
+            <span id="navUsernameText" class="feed-nav-username-pill">@username</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.72rem; color: var(--text-dim); margin-right: 4px;"></i>
+          </button>
+
+          <!-- User Menu Dropdown -->
+          <div id="userMenuDropdown" class="feed-user-dropdown">
+            <div class="feed-dropdown-user-header">
+              <div id="dropdownUserAvatarWrap"></div>
+              <div style="min-width: 0;">
+                <div id="dropdownFullName" style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User Name</div>
+                <div id="dropdownUsername" style="font-size: 0.78rem; color: var(--accent-cyan);">@username</div>
+                <div id="dropdownRoleTitle" style="font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;">Role</div>
+              </div>
+            </div>
+
+            <a href="#" id="dropdownProfileLink" class="feed-dropdown-item">
+              <i class="fa-solid fa-user"></i> My Profile
+            </a>
+            <button id="dropdownSavedBtn" class="feed-dropdown-item">
+              <i class="fa-solid fa-bookmark"></i> Saved Posts
+            </button>
+            <a href="marketplace.html" class="feed-dropdown-item">
+              <i class="fa-solid fa-store"></i> Chuka Marketplace
+            </a>
+            <a href="#" id="dropdownAdminLink" class="feed-dropdown-item" style="display: none;">
+              <i class="fa-solid fa-shield-halved"></i> Moderator Console
+            </a>
+            <button id="dropdownSettingsBtn" class="feed-dropdown-item">
+              <i class="fa-solid fa-gear"></i> Settings
+            </button>
+
+            <div class="feed-dropdown-divider"></div>
+
+            <button id="dropdownLogoutBtn" class="feed-dropdown-item logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       MAIN THREE-COLUMN LAYOUT
+       ================================================================= -->
+  <main class="feed-layout-container">
+
+    <!-- ─── 1. LEFT SIDEBAR (260px Fixed) ─── -->
+    <aside class="feed-sidebar-left">
+      <!-- User Profile Shortcut Card -->
+      <div class="feed-user-profile-card">
+        <div class="feed-profile-avatar-wrap" id="leftCardAvatar"></div>
+        <h3 class="feed-profile-name" id="leftCardName">User</h3>
+        <a href="#" class="feed-profile-handle" id="leftCardHandle">@username</a>
+        <div class="feed-role-badge" id="leftCardRoleBadge">Role</div>
+
+        <div class="feed-profile-stats-row">
+          <div class="feed-profile-stat-box">
+            <span class="feed-profile-stat-val" id="leftUserPostsCount">0</span>
+            <span class="feed-profile-stat-lbl">Posts</span>
+          </div>
+          <div class="feed-profile-stat-box">
+            <span class="feed-profile-stat-val" id="leftUserSavedCount">0</span>
+            <span class="feed-profile-stat-lbl">Saved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="feed-sidebar-nav">
+        <a href="feed.html" class="feed-sidebar-link active" id="sideNavFeed">
+          <i class="fa-solid fa-newspaper"></i>
+          <span>News Feed</span>
+        </a>
+        <button class="feed-sidebar-link" id="sideNavExplore">
+          <i class="fa-solid fa-compass"></i>
+          <span>Explore Community</span>
+        </button>
+        <a href="videos.html" class="feed-sidebar-link">
+          <i class="fa-solid fa-circle-play"></i>
+          <span>Videos</span>
+        </a>
+        <a href="news.html" class="feed-sidebar-link">
+          <i class="fa-solid fa-bullhorn"></i>
+          <span>Latest News</span>
+        </a>
+        <a href="events.html" class="feed-sidebar-link">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Events</span>
+        </a>
+        <button class="feed-sidebar-link" id="sideNavSaved">
+          <i class="fa-solid fa-bookmark"></i>
+          <span>Saved Posts</span>
+          <span class="feed-sidebar-badge" id="sideNavSavedBadge">0</span>
+        </button>
+        <a href="marketplace.html" class="feed-sidebar-link">
+          <i class="fa-solid fa-store"></i>
+          <span>Marketplace</span>
+        </a>
+        <button class="feed-sidebar-link" id="sideNavSettings">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Platform Stats Card -->
+      <div class="feed-platform-stats-card">
+        <div class="feed-stats-card-title">
+          <i class="fa-solid fa-chart-simple" style="color: var(--accent-cyan);"></i>
+          <span>Chuka Community Stats</span>
+        </div>
+        <div class="feed-stat-line">
+          <span><i class="fa-solid fa-users"></i> Registered Members</span>
+          <span id="statMembersCount">0</span>
+        </div>
+        <div class="feed-stat-line">
+          <span><i class="fa-solid fa-message"></i> Total Discussions</span>
+          <span id="statPostsCount">0</span>
+        </div>
+        <div class="feed-stat-line">
+          <span><i class="fa-solid fa-calendar-check"></i> Active Events</span>
+          <span id="statEventsCount">0</span>
+        </div>
+        <div class="feed-stat-line">
+          <span><i class="fa-solid fa-circle-check" style="color: var(--accent-teal);"></i> Town Network</span>
+          <span style="color: var(--accent-teal);">Connected 🟢</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── 2. CENTRE FEED (Flex Grow) ─── -->
+    <section class="feed-center">
+
+      <!-- Post Composer Trigger Card -->
+      <div class="feed-composer-card">
+        <div class="feed-composer-top">
+          <div id="composerUserAvatar"></div>
+          <button id="openComposerTrigger" class="feed-composer-trigger-btn">
+            <span id="composerPlaceholderText">What's happening in Chuka?</span>
+            <i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan);"></i>
+          </button>
+        </div>
+
+        <div class="feed-composer-actions">
+          <button class="feed-composer-action-btn photo" id="actionBtnPhoto">
+            <i class="fa-solid fa-image"></i>
+            <span>Photo</span>
+          </button>
+          <button class="feed-composer-action-btn video" id="actionBtnVideo">
+            <i class="fa-solid fa-video"></i>
+            <span>Video</span>
+          </button>
+          <button class="feed-composer-action-btn news" id="actionBtnNews">
+            <i class="fa-solid fa-newspaper"></i>
+            <span>News</span>
+          </button>
+          <button class="feed-composer-action-btn event" id="actionBtnEvent">
+            <i class="fa-solid fa-calendar-plus"></i>
+            <span>Event</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed Filter Pill Tabs -->
+      <div class="feed-filters-bar" id="feedFilterTabs">
+        <button class="feed-filter-pill active" data-tab="for-you">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> For You
+        </button>
+        <button class="feed-filter-pill" data-tab="latest">
+          <i class="fa-solid fa-clock"></i> Latest
+        </button>
+        <button class="feed-filter-pill" data-tab="news">
+          <i class="fa-solid fa-bullhorn"></i> News
+        </button>
+        <button class="feed-filter-pill" data-tab="videos">
+          <i class="fa-solid fa-play"></i> Videos
+        </button>
+        <button class="feed-filter-pill" data-tab="events">
+          <i class="fa-solid fa-calendar-days"></i> Events
+        </button>
+        <button class="feed-filter-pill campus" data-tab="campus">
+          <i class="fa-solid fa-graduation-cap"></i> Campus
+        </button>
+        <button class="feed-filter-pill community" data-tab="community">
+          <i class="fa-solid fa-house-chimney"></i> Community
+        </button>
+        <button class="feed-filter-pill business" data-tab="business">
+          <i class="fa-solid fa-store"></i> Business
+        </button>
+        <button class="feed-filter-pill" data-tab="saved">
+          <i class="fa-solid fa-bookmark"></i> Saved
+        </button>
+      </div>
+
+      <!-- Skeleton Loader (Shimmer Animation) -->
+      <div id="feedSkeletonLoader" class="feed-skeleton-container">
+        <div class="feed-skeleton-card">
+          <div class="feed-skeleton-header">
+            <div class="feed-skeleton-avatar shimmer"></div>
+            <div class="feed-skeleton-user-info">
+              <div class="feed-skeleton-line short shimmer"></div>
+              <div class="feed-skeleton-line medium shimmer"></div>
+            </div>
+          </div>
+          <div class="feed-skeleton-line full shimmer" style="margin-bottom: 8px;"></div>
+          <div class="feed-skeleton-line long shimmer"></div>
+          <div class="feed-skeleton-media shimmer"></div>
+        </div>
+        <div class="feed-skeleton-card">
+          <div class="feed-skeleton-header">
+            <div class="feed-skeleton-avatar shimmer"></div>
+            <div class="feed-skeleton-user-info">
+              <div class="feed-skeleton-line short shimmer"></div>
+              <div class="feed-skeleton-line medium shimmer"></div>
+            </div>
+          </div>
+          <div class="feed-skeleton-line full shimmer" style="margin-bottom: 8px;"></div>
+          <div class="feed-skeleton-line long shimmer"></div>
+        </div>
+      </div>
+
+      <!-- Real Posts Container -->
+      <div id="postsFeedContainer" class="feed-posts-container" style="display: none;">
+        <!-- Dynamic Post Cards Rendered Here -->
+      </div>
+
+      <!-- Empty State Card -->
+      <div id="feedEmptyState" class="feed-empty-state">
+        <div class="feed-empty-icon"><i class="fa-solid fa-comments"></i></div>
+        <h3 class="feed-empty-title">No Discussions Found</h3>
+        <p class="feed-empty-text">Be the first to share an update, hostel alert, campus notice, or business deal with Chuka!</p>
+        <button class="btn btn-primary btn-md" onclick="openComposerModal()">
+          <i class="fa-solid fa-pen"></i> Create a Post
+        </button>
+      </div>
+
+      <!-- Load More Button -->
+      <div id="loadMoreWrap" class="feed-load-more-wrap" style="display: none;">
+        <button id="loadMoreBtn" class="feed-load-more-btn">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Load More Posts</span>
+        </button>
+      </div>
+
+      <!-- Infinite Scroll Sentinel -->
+      <div id="infiniteScrollSentinel" style="height: 20px;"></div>
+    </section>
+
+    <!-- ─── 3. RIGHT SIDEBAR (300px Fixed) ─── -->
+    <aside class="feed-sidebar-right">
+      <!-- Upcoming Events Widget -->
+      <div class="feed-widget-card">
+        <div class="feed-widget-header">
+          <span class="feed-widget-title">
+            <i class="fa-solid fa-calendar-check" style="color: var(--accent-cyan);"></i>
+            <span>Upcoming Events</span>
+          </span>
+          <a href="events.html" class="feed-widget-link">View all <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div id="sidebarEventsList" class="feed-events-list">
+          <!-- Dynamic Events Rendered Here -->
+        </div>
+      </div>
+
+      <!-- Trending Discussions Widget -->
+      <div class="feed-widget-card">
+        <div class="feed-widget-header">
+          <span class="feed-widget-title">
+            <i class="fa-solid fa-fire" style="color: #f59e0b;"></i>
+            <span>Trending in Chuka</span>
+          </span>
+        </div>
+        <div id="sidebarTrendingList" class="feed-trending-list">
+          <!-- Dynamic Trending Discussions Rendered Here -->
+        </div>
+      </div>
+
+      <!-- Suggested Accounts Widget -->
+      <div class="feed-widget-card">
+        <div class="feed-widget-header">
+          <span class="feed-widget-title">
+            <i class="fa-solid fa-user-plus" style="color: var(--accent-teal);"></i>
+            <span>Discover Community</span>
+          </span>
+        </div>
+        <div id="sidebarSuggestedList" class="feed-suggested-list">
+          <!-- Dynamic Suggested Accounts Rendered Here -->
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- =================================================================
+       MOBILE BOTTOM NAVIGATION BAR (Fixed Bottom)
+       ================================================================= -->
+  <nav class="feed-mobile-bottom-nav">
+    <a href="feed.html" class="feed-mobile-nav-link active">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <button class="feed-mobile-nav-link" id="mobileSearchTrigger" style="background: none; border: none; cursor: pointer;">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Search</span>
+    </button>
+    <button class="feed-mobile-nav-create-btn" id="mobileCreateTrigger" title="Create Post">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <a href="events.html" class="feed-mobile-nav-link">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span>Events</span>
+    </a>
+    <a href="#" id="mobileProfileLink" class="feed-mobile-nav-link">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- =================================================================
+       MODALS
+       ================================================================= -->
+
+  <!-- 1. Post Composer Modal -->
+  <div id="composerModal" class="feed-modal-backdrop">
+    <div class="feed-modal-card">
+      <div class="feed-modal-header">
+        <span class="feed-modal-title">
+          <i class="fa-solid fa-pen-nib" style="color: var(--accent-cyan);"></i>
+          <span>Create Post</span>
+        </span>
+        <button class="feed-modal-close-btn" onclick="closeComposerModal()" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="postComposerForm">
+        <div class="feed-modal-body">
+          <!-- Author Info Strip -->
+          <div class="feed-modal-author-strip">
+            <div id="composerModalAvatar"></div>
+            <div>
+              <div id="composerModalAuthorName" style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: #fff;">Author</div>
+              <div id="composerModalAuthorHandle" style="font-size: 0.78rem; color: var(--accent-cyan);">@username</div>
+            </div>
+          </div>
+
+          <!-- Text Area -->
+          <textarea id="composerContentInput" class="feed-modal-textarea" placeholder="What's happening in Chuka? Share news, hostel announcements, study groups, campus alerts, or business deals..." required></textarea>
+          <div class="feed-modal-char-counter">
+            <span id="composerCharCount">0</span>/2000
+          </div>
+
+          <!-- Category & Location Grid -->
+          <div class="feed-modal-form-grid">
+            <div class="feed-modal-input-group">
+              <label class="feed-modal-label">Category</label>
+              <select id="composerCategorySelect" class="feed-modal-input" required>
+                <option value="campus">🎓 Campus Life</option>
+                <option value="community">🏘️ Town Community</option>
+                <option value="business">💼 Local Business</option>
+                <option value="news">📢 Official News</option>
+                <option value="event">📅 Community Event</option>
+              </select>
+            </div>
+
+            <div class="feed-modal-input-group">
+              <label class="feed-modal-label">Location (Optional)</label>
+              <input type="text" id="composerLocationInput" class="feed-modal-input" placeholder="e.g. Ndagani, Gate A, Science Complex">
+            </div>
+          </div>
+
+          <!-- Hashtags Input -->
+          <div class="feed-modal-input-group" style="margin-bottom: 16px;">
+            <label class="feed-modal-label">Hashtags</label>
+            <input type="text" id="composerHashtagsInput" class="feed-modal-input" placeholder="e.g. #ChukaUni, #NdaganiEats, #StudyGroup">
+          </div>
+
+          <!-- Media Previews Strip -->
+          <div id="composerMediaPreviewStrip" class="feed-modal-media-preview" style="display: none;"></div>
+
+          <!-- Hidden File Inputs -->
+          <input type="file" id="mediaPhotoInput" accept="image/*" multiple style="display: none;">
+          <input type="file" id="mediaVideoInput" accept="video/*" style="display: none;">
+        </div>
+
+        <div class="feed-modal-footer">
+          <div class="feed-modal-attach-actions">
+            <button type="button" class="feed-attach-btn" id="attachPhotoBtn" title="Attach Photos">
+              <i class="fa-solid fa-image" style="color: #10b981;"></i>
+            </button>
+            <button type="button" class="feed-attach-btn" id="attachVideoBtn" title="Attach Video">
+              <i class="fa-solid fa-video" style="color: #ef4444;"></i>
+            </button>
+          </div>
+
+          <button type="submit" id="composerSubmitBtn" class="feed-modal-submit-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Publish Post</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Comment Thread Modal -->
+  <div id="commentModal" class="feed-modal-backdrop">
+    <div class="feed-modal-card" style="max-width: 680px;">
+      <div class="feed-modal-header">
+        <span class="feed-modal-title">
+          <i class="fa-solid fa-comments" style="color: var(--accent-cyan);"></i>
+          <span>Post Discussion</span>
+        </span>
+        <button class="feed-modal-close-btn" onclick="closeCommentModal()" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="feed-modal-body">
+        <!-- Post Preview in Modal -->
+        <div id="commentModalPostPreview" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);"></div>
+
+        <!-- Add Comment Form -->
+        <form id="modalCommentForm" style="display: flex; gap: 10px; margin-bottom: 24px;">
+          <div id="modalCommentUserAvatar"></div>
+          <div style="flex: 1; position: relative;">
+            <input type="text" id="modalCommentInput" class="feed-comment-input" placeholder="Write a comment..." required>
+            <button type="submit" class="feed-comment-send-btn">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+
+        <!-- Full Comments List -->
+        <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin-bottom: 14px;">
+          Comments (<span id="modalCommentsCount">0</span>)
+        </h4>
+        <div id="modalCommentsList" class="feed-comments-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Report Content Modal -->
+  <div id="reportModal" class="feed-modal-backdrop">
+    <div class="feed-modal-card" style="max-width: 480px;">
+      <div class="feed-modal-header">
+        <span class="feed-modal-title" style="color: #ef4444;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Report Content</span>
+        </span>
+        <button class="feed-modal-close-btn" onclick="closeReportModal()" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="reportForm">
+        <div class="feed-modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+            Help keep the Chuka community safe and respectful. Nexovanta moderators review reports in accordance with community guidelines.
+          </p>
+
+          <div class="feed-modal-input-group" style="margin-bottom: 14px;">
+            <label class="feed-modal-label">Reason for reporting</label>
+            <select id="reportReasonSelect" class="feed-modal-input" required>
+              <option value="" disabled selected>Select a violation reason</option>
+              <option value="spam">Spam or Scams</option>
+              <option value="harassment">Harassment or Bullying</option>
+              <option value="hate">Hate Speech or Discrimination</option>
+              <option value="misinformation">False Information</option>
+              <option value="inappropriate">Inappropriate Media</option>
+              <option value="other">Other Violation</option>
+            </select>
+          </div>
+
+          <div class="feed-modal-input-group">
+            <label class="feed-modal-label">Additional Details</label>
+            <textarea id="reportDetailsInput" class="feed-modal-textarea" style="min-height: 80px;" placeholder="Provide context to help moderators evaluate this report..."></textarea>
+          </div>
+        </div>
+
+        <div class="feed-modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeReportModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" style="background: #ef4444; border-color: #ef4444; color: #fff;">
+            Submit Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Media Lightbox Modal -->
+  <div id="lightboxModal" class="feed-lightbox-backdrop">
+    <button class="feed-lightbox-close" onclick="closeLightbox()" title="Close viewer">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="feed-lightbox-content" id="lightboxContent"></div>
+  </div>
+
+  <!-- =================================================================
+       SCRIPTS: DB LAYER, APP UTILS & FLAGSHIP FEED ENGINE
+       ================================================================= -->
+  <script src="app.js"></script>
+  <script>
+    /**
+     * Nexovanta Social Feed Page Engine
+     * Flagship Interactive Component
+     */
+
+    // ─── Global State ──────────────────────────────────────────────────────────
+    let currentUser = null;
+    let currentTab = 'for-you';
+    let searchQuery = '';
+    let currentPage = 1;
+    const postsPerPage = 10;
+    let activeModalPostId = null;
+    let activeReportPostId = null;
+    let composerMediaFiles = []; // [{type: 'image'|'video', url, name}]
+    let infiniteObserver = null;
+
+    // ─── Initialization ────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Session & Auth Check (with smooth auto-healing for any valid test session)
+      let session = NexovantaDB.Session.get();
+      if (session && session.loggedIn && (!session.id || !session.username)) {
+        const users = NexovantaDB.Users.getAll();
+        const matched = users.find(u => u.role === session.role) || users[0];
+        if (matched) session = NexovantaDB.Session.set(matched);
+      }
+
+      if (!NexovantaDB.Session.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentUser = NexovantaDB.Session.get();
+
+      // 2. Setup User Interface Elements
+      initUserUI();
+
+      // 3. Setup Navigation & Filter Event Handlers
+      initNavigationHandlers();
+
+      // 4. Setup Post Composer Handlers
+      initComposerHandlers();
+
+      // 5. Setup Search Handlers
+      initSearchHandlers();
+
+      // 6. Setup Right Sidebar Widgets
+      initRightSidebarWidgets();
+
+      // 7. Render Notifications Badge & Panel
+      updateNotificationBadge();
+
+      // 8. Render Feed
+      renderFeed(true);
+
+      // 9. Setup Infinite Scroll Observer
+      initInfiniteScroll();
+
+      // 10. Global Keyboard Shortcuts (Escape to close modals)
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeComposerModal();
+          closeCommentModal();
+          closeReportModal();
+          closeLightbox();
+          document.getElementById('userMenuDropdown')?.classList.remove('show');
+          document.getElementById('notifDropdown')?.classList.remove('show');
+        }
+      });
+    });
+
+    // ─── 1. User UI Setup ──────────────────────────────────────────────────────
+    function initUserUI() {
+      if (!currentUser) return;
+
+      // Nav bar user pill
+      const navAvatarWrap = document.getElementById('navUserAvatarWrap');
+      if (navAvatarWrap) {
+        navAvatarWrap.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 32);
+      }
+      const navUsername = document.getElementById('navUsernameText');
+      if (navUsername) navUsername.textContent = `@${currentUser.username}`;
+
+      // User dropdown
+      const dropAvatar = document.getElementById('dropdownUserAvatarWrap');
+      if (dropAvatar) {
+        dropAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 44);
+      }
+      const dropFullName = document.getElementById('dropdownFullName');
+      if (dropFullName) dropFullName.textContent = currentUser.full_name || currentUser.username;
+      const dropUsername = document.getElementById('dropdownUsername');
+      if (dropUsername) dropUsername.textContent = `@${currentUser.username}`;
+      const dropRole = document.getElementById('dropdownRoleTitle');
+      if (dropRole) dropRole.textContent = currentUser.roleTitle || formatRoleName(currentUser.role);
+
+      // Profile Links
+      const profileUrl = `profile.html?user=${encodeURIComponent(currentUser.username)}`;
+      const dropProfileLink = document.getElementById('dropdownProfileLink');
+      if (dropProfileLink) dropProfileLink.href = profileUrl;
+      const mobProfileLink = document.getElementById('mobileProfileLink');
+      if (mobProfileLink) mobProfileLink.href = profileUrl;
+
+      // Admin / Moderator Console link
+      const adminLink = document.getElementById('dropdownAdminLink');
+      if (adminLink && (currentUser.account_role === 'admin' || currentUser.account_role === 'moderator')) {
+        adminLink.style.display = 'flex';
+        adminLink.href = 'admin.html';
+      }
+
+      // Left sidebar profile card
+      const leftAvatar = document.getElementById('leftCardAvatar');
+      if (leftAvatar) leftAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 56);
+      const leftName = document.getElementById('leftCardName');
+      if (leftName) leftName.textContent = currentUser.full_name || currentUser.username;
+      const leftHandle = document.getElementById('leftCardHandle');
+      if (leftHandle) {
+        leftHandle.textContent = `@${currentUser.username}`;
+        leftHandle.href = profileUrl;
+      }
+      const leftBadge = document.getElementById('leftCardRoleBadge');
+      if (leftBadge) {
+        leftBadge.className = `feed-role-badge ${currentUser.role || 'student'}`;
+        leftBadge.innerHTML = getRoleBadgeHtml(currentUser.role);
+      }
+
+      // Left Sidebar User Stats
+      updateLeftSidebarStats();
+
+      // Composer Card
+      const compAvatar = document.getElementById('composerUserAvatar');
+      if (compAvatar) compAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 40);
+      const compPlace = document.getElementById('composerPlaceholderText');
+      if (compPlace) compPlace.textContent = `What's happening in Chuka, @${currentUser.username}?`;
+
+      // Modal Composer Author
+      const compModAvatar = document.getElementById('composerModalAvatar');
+      if (compModAvatar) compModAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 40);
+      const compModName = document.getElementById('composerModalAuthorName');
+      if (compModName) compModName.textContent = currentUser.full_name || currentUser.username;
+      const compModHandle = document.getElementById('composerModalAuthorHandle');
+      if (compModHandle) compModHandle.textContent = `@${currentUser.username}`;
+
+      // Comment Modal Avatar
+      const modCommentAvatar = document.getElementById('modalCommentUserAvatar');
+      if (modCommentAvatar) modCommentAvatar.innerHTML = NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 36);
+    }
+
+    function updateLeftSidebarStats() {
+      if (!currentUser) return;
+      const allPosts = NexovantaDB.Posts.getAll();
+      const userPosts = allPosts.filter(p => p.author_id === currentUser.id || p.author_username === currentUser.username);
+      const postCountEl = document.getElementById('leftUserPostsCount');
+      if (postCountEl) postCountEl.textContent = userPosts.length;
+
+      const savedPosts = NexovantaDB.SavedPosts.getByUser(currentUser.id);
+      const savedCountEl = document.getElementById('leftUserSavedCount');
+      if (savedCountEl) savedCountEl.textContent = savedPosts.length;
+      const sideSavedBadge = document.getElementById('sideNavSavedBadge');
+      if (sideSavedBadge) sideSavedBadge.textContent = savedPosts.length;
+
+      // Platform stats
+      const membersCountEl = document.getElementById('statMembersCount');
+      if (membersCountEl) membersCountEl.textContent = NexovantaDB.Users.getAll().length;
+      const totalPostsEl = document.getElementById('statPostsCount');
+      if (totalPostsEl) totalPostsEl.textContent = allPosts.length;
+      const eventsEl = document.getElementById('statEventsCount');
+      if (eventsEl) eventsEl.textContent = NexovantaDB.Events.getAll().length;
+    }
+
+    function formatRoleName(role) {
+      if (role === 'student') return 'Chuka Student 🎓';
+      if (role === 'business') return 'Chuka Merchant 💼';
+      return 'Chuka Resident 🏘️';
+    }
+
+    function getRoleBadgeHtml(role) {
+      if (role === 'student') return '<i class="fa-solid fa-graduation-cap"></i> Student';
+      if (role === 'business') return '<i class="fa-solid fa-store"></i> Merchant';
+      return '<i class="fa-solid fa-house-chimney"></i> Resident';
+    }
+
+    // ─── 2. Navigation & Dropdowns Handlers ─────────────────────────────────────
+    function initNavigationHandlers() {
+      // User menu toggle
+      const userTrigger = document.getElementById('userMenuTrigger');
+      const userDropdown = document.getElementById('userMenuDropdown');
+      if (userTrigger && userDropdown) {
+        userTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          userDropdown.classList.toggle('show');
+          document.getElementById('notifDropdown')?.classList.remove('show');
+        });
+      }
+
+      // Notif Bell toggle
+      const notifBell = document.getElementById('notifBellBtn');
+      const notifDropdown = document.getElementById('notifDropdown');
+      if (notifBell && notifDropdown) {
+        notifBell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          notifDropdown.classList.toggle('show');
+          userDropdown?.classList.remove('show');
+          if (notifDropdown.classList.contains('show')) {
+            renderNotifications();
+          }
+        });
+      }
+
+      // Click outside to close dropdowns
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#userMenuTrigger') && !e.target.closest('#userMenuDropdown')) {
+          userDropdown?.classList.remove('show');
+        }
+        if (!e.target.closest('#notifBellBtn') && !e.target.closest('#notifDropdown')) {
+          notifDropdown?.classList.remove('show');
+        }
+      });
+
+      // Mark all read button
+      const markAllBtn = document.getElementById('markAllReadBtn');
+      if (markAllBtn) {
+        markAllBtn.addEventListener('click', () => {
+          NexovantaDB.Notifications.markAllRead(currentUser.id);
+          renderNotifications();
+          updateNotificationBadge();
+          showToast('All notifications marked as read.');
+        });
+      }
+
+      // Logout handler
+      const logoutBtn = document.getElementById('dropdownLogoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          NexovantaAuth.signOut().then(() => window.location.replace('login.html'));
+        });
+      }
+
+      // Left sidebar links
+      document.getElementById('sideNavExplore')?.addEventListener('click', () => switchTab('community'));
+      document.getElementById('sideNavSaved')?.addEventListener('click', () => switchTab('saved'));
+      document.getElementById('dropdownSavedBtn')?.addEventListener('click', () => {
+        userDropdown?.classList.remove('show');
+        switchTab('saved');
+      });
+      document.getElementById('sideNavSettings')?.addEventListener('click', () => {
+        showToast('Account settings available in profile.');
+      });
+      document.getElementById('dropdownSettingsBtn')?.addEventListener('click', () => {
+        userDropdown?.classList.remove('show');
+        showToast('Account settings available in profile.');
+      });
+
+      // Filter tabs bar
+      const filterPills = document.querySelectorAll('.feed-filter-pill');
+      filterPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          const tab = pill.getAttribute('data-tab');
+          switchTab(tab);
+        });
+      });
+
+      // Load More Posts button
+      const loadMoreBtn = document.getElementById('loadMoreBtn');
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+          loadMoreBtn.classList.add('loading');
+          setTimeout(() => {
+            currentPage++;
+            renderFeed(false);
+            loadMoreBtn.classList.remove('loading');
+          }, 350);
+        });
+      }
+
+      // Mobile Bottom Nav Search & Create Triggers
+      document.getElementById('mobileSearchTrigger')?.addEventListener('click', () => {
+        const wrap = document.getElementById('navSearchContainer');
+        wrap?.classList.toggle('mobile-active');
+        document.getElementById('feedSearchInput')?.focus();
+      });
+
+      document.getElementById('mobileCreateTrigger')?.addEventListener('click', openComposerModal);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      currentPage = 1;
+
+      // Update pill classes
+      document.querySelectorAll('.feed-filter-pill').forEach(p => {
+        if (p.getAttribute('data-tab') === tab) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
+
+      // Re-render feed
+      renderFeed(true);
+    }
+
+    // ─── 3. Search Engine ──────────────────────────────────────────────────────
+    function initSearchHandlers() {
+      const searchInput = document.getElementById('feedSearchInput');
+      const searchDropdown = document.getElementById('searchResultsDropdown');
+
+      if (!searchInput) return;
+
+      let debounceTimer;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          currentPage = 1;
+          renderFeed(true);
+
+          // Render live preview suggestions if query >= 2 chars
+          if (searchQuery.length >= 2) {
+            renderSearchSuggestions(searchQuery);
+          } else {
+            searchDropdown.classList.remove('active');
+          }
+        }, 250);
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#navSearchContainer')) {
+          searchDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    function renderSearchSuggestions(query) {
+      const dropdown = document.getElementById('searchResultsDropdown');
+      if (!dropdown) return;
+
+      const users = NexovantaDB.Users.getAll().filter(u =>
+        u.username.toLowerCase().includes(query) || (u.full_name && u.full_name.toLowerCase().includes(query))
+      ).slice(0, 3);
+
+      const posts = NexovantaDB.Posts.getAll().filter(p =>
+        p.content.toLowerCase().includes(query) || p.hashtags?.some(t => t.toLowerCase().includes(query))
+      ).slice(0, 4);
+
+      if (users.length === 0 && posts.length === 0) {
+        dropdown.innerHTML = `<div style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-dim); text-align: center;">No matches found for "${query}"</div>`;
+        dropdown.classList.add('active');
+        return;
+      }
+
+      let html = '';
+      if (users.length > 0) {
+        html += `<div style="padding: 8px 16px 4px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Community Members</div>`;
+        users.forEach(u => {
+          html += `
+            <a href="profile.html?user=${encodeURIComponent(u.username)}" class="feed-search-result-item">
+              ${NexovantaDB.getAvatarHtml(u.username, u.avatar_url, 30)}
+              <div style="min-width: 0;">
+                <div style="font-size: 0.84rem; font-weight: 700; color: #fff;">${escapeHtml(u.full_name || u.username)}</div>
+                <div style="font-size: 0.72rem; color: var(--accent-cyan);">@${escapeHtml(u.username)}</div>
+              </div>
+            </a>
+          `;
+        });
+      }
+
+      if (posts.length > 0) {
+        html += `<div style="padding: 8px 16px 4px; font-size: 0.7rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Posts</div>`;
+        posts.forEach(p => {
+          html += `
+            <div class="feed-search-result-item" onclick="openCommentModal('${p.id}'); document.getElementById('searchResultsDropdown').classList.remove('active');" style="cursor: pointer;">
+              <i class="fa-solid fa-message" style="color: var(--accent-cyan); font-size: 0.85rem;"></i>
+              <div style="min-width: 0; font-size: 0.82rem; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${escapeHtml(p.content)}
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      dropdown.innerHTML = html;
+      dropdown.classList.add('active');
+    }
+
+    // ─── 4. Notifications System ───────────────────────────────────────────────
+    function updateNotificationBadge() {
+      if (!currentUser) return;
+      const unreadCount = NexovantaDB.Notifications.getUnreadCount(currentUser.id);
+      const badge = document.getElementById('notifBadge');
+      if (badge) {
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+          badge.style.display = 'inline-flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    function renderNotifications() {
+      if (!currentUser) return;
+      const listEl = document.getElementById('notifList');
+      if (!listEl) return;
+
+      const notifs = NexovantaDB.Notifications.getByUser(currentUser.id);
+      if (notifs.length === 0) {
+        listEl.innerHTML = `
+          <div class="feed-notif-empty">
+            <i class="fa-regular fa-bell-slash"></i>
+            <div>No notifications yet</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">When classmates, merchants or residents interact with you, updates will appear here.</div>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = notifs.map(n => {
+        const isUnread = !n.read_at;
+        const iconType = n.notification_type === 'reaction' ? 'fa-heart reaction'
+                       : n.notification_type === 'comment' ? 'fa-comment comment'
+                       : n.notification_type === 'event_rsvp' ? 'fa-calendar-check event'
+                       : 'fa-bell';
+        return `
+          <div class="feed-notif-item ${isUnread ? 'unread' : ''}" onclick="handleNotificationClick('${n.id}', '${n.notification_type}', '${n.entity_id}')">
+            <div class="feed-notif-icon-bubble ${n.notification_type}">
+              <i class="fa-solid ${iconType}"></i>
+            </div>
+            <div class="feed-notif-body">
+              <div class="feed-notif-msg">${escapeHtml(n.message)}</div>
+              <div class="feed-notif-time">${NexovantaDB.timeAgo(n.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleNotificationClick(notifId, type, entityId) {
+      // Mark clicked notif as read in storage
+      const notifs = JSON.parse(localStorage.getItem('nx_notifications') || '[]');
+      const target = notifs.find(n => n.id === notifId);
+      if (target) {
+        target.read_at = new Date().toISOString();
+        localStorage.setItem('nx_notifications', JSON.stringify(notifs));
+      }
+      updateNotificationBadge();
+      renderNotifications();
+      document.getElementById('notifDropdown')?.classList.remove('show');
+
+      // Navigate or view entity
+      if (type === 'reaction' || type === 'comment') {
+        openCommentModal(entityId);
+      } else if (type === 'event_rsvp') {
+        window.location.href = 'events.html';
+      }
+    }
+
+    // ─── 5. Post Composer Engine ───────────────────────────────────────────────
+    function initComposerHandlers() {
+      // Open triggers
+      document.getElementById('openComposerTrigger')?.addEventListener('click', () => openComposerModal());
+      document.getElementById('actionBtnPhoto')?.addEventListener('click', () => {
+        openComposerModal();
+        document.getElementById('mediaPhotoInput')?.click();
+      });
+      document.getElementById('actionBtnVideo')?.addEventListener('click', () => {
+        openComposerModal();
+        document.getElementById('mediaVideoInput')?.click();
+      });
+      document.getElementById('actionBtnNews')?.addEventListener('click', () => {
+        openComposerModal();
+        document.getElementById('composerCategorySelect').value = 'news';
+      });
+      document.getElementById('actionBtnEvent')?.addEventListener('click', () => {
+        openComposerModal();
+        document.getElementById('composerCategorySelect').value = 'event';
+      });
+
+      // Internal media attach buttons
+      document.getElementById('attachPhotoBtn')?.addEventListener('click', () => {
+        document.getElementById('mediaPhotoInput')?.click();
+      });
+      document.getElementById('attachVideoBtn')?.addEventListener('click', () => {
+        document.getElementById('mediaVideoInput')?.click();
+      });
+
+      // Character counter
+      const contentInput = document.getElementById('composerContentInput');
+      const charCounter = document.getElementById('composerCharCount');
+      if (contentInput && charCounter) {
+        contentInput.addEventListener('input', () => {
+          charCounter.textContent = contentInput.value.length;
+        });
+      }
+
+      // Photo file upload handler
+      document.getElementById('mediaPhotoInput')?.addEventListener('change', (e) => {
+        handleMediaFiles(e.target.files, 'image');
+      });
+
+      // Video file upload handler
+      document.getElementById('mediaVideoInput')?.addEventListener('change', (e) => {
+        handleMediaFiles(e.target.files, 'video');
+      });
+
+      // Form submission
+      document.getElementById('postComposerForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submitNewPost();
+      });
+    }
+
+    function openComposerModal() {
+      const modal = document.getElementById('composerModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('composerContentInput')?.focus(), 150);
+      }
+    }
+
+    function closeComposerModal() {
+      const modal = document.getElementById('composerModal');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function handleMediaFiles(fileList, expectedType) {
+      if (!fileList || fileList.length === 0) return;
+
+      Array.from(fileList).forEach(file => {
+        const isVideo = file.type.startsWith('video');
+        const isImage = file.type.startsWith('image');
+
+        if (!isImage && !isVideo) {
+          showToast('Please select valid image or video files.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          composerMediaFiles.push({
+            type: isVideo ? 'video' : 'image',
+            url: event.target.result,
+            name: file.name
+          });
+          renderMediaPreviewStrip();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderMediaPreviewStrip() {
+      const previewStrip = document.getElementById('composerMediaPreviewStrip');
+      if (!previewStrip) return;
+
+      if (composerMediaFiles.length === 0) {
+        previewStrip.style.display = 'none';
+        previewStrip.innerHTML = '';
+        return;
+      }
+
+      previewStrip.style.display = 'flex';
+      previewStrip.innerHTML = composerMediaFiles.map((m, idx) => `
+        <div class="feed-preview-item">
+          ${m.type === 'video'
+            ? `<video src="${m.url}" muted></video>`
+            : `<img src="${m.url}" alt="Attachment">`
+          }
+          <button type="button" class="feed-preview-remove-btn" onclick="removeMediaAttachment(${idx})" title="Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.removeMediaAttachment = function(index) {
+      composerMediaFiles.splice(index, 1);
+      renderMediaPreviewStrip();
+    };
+
+    function submitNewPost() {
+      const content = document.getElementById('composerContentInput').value.trim();
+      if (!content && composerMediaFiles.length === 0) {
+        showToast('Please write something or attach media for your post.');
+        return;
+      }
+
+      const category = document.getElementById('composerCategorySelect').value;
+      const location = document.getElementById('composerLocationInput').value.trim();
+      const rawTags = document.getElementById('composerHashtagsInput').value.trim();
+
+      // Extract hashtags
+      const tagsFromInput = rawTags.split(/[\s,]+/).filter(Boolean).map(t => t.startsWith('#') ? t : `#${t}`);
+      const tagsFromContent = (content.match(/#[a-zA-Z0-9_]+/g) || []);
+      const combinedTags = Array.from(new Set([...tagsFromInput, ...tagsFromContent]));
+
+      // Determine post type
+      let postType = 'text';
+      if (composerMediaFiles.some(m => m.type === 'video')) postType = 'video';
+      else if (composerMediaFiles.length > 0) postType = 'image';
+      else if (category === 'news') postType = 'news';
+      else if (category === 'event') postType = 'event';
+
+      const newPost = NexovantaDB.Posts.create({
+        author_username: currentUser.username,
+        author_id: currentUser.id,
+        content: content,
+        post_type: postType,
+        category: category,
+        location: location,
+        hashtags: combinedTags,
+        media: [...composerMediaFiles]
+      });
+
+      // Clear composer
+      document.getElementById('composerContentInput').value = '';
+      document.getElementById('composerLocationInput').value = '';
+      document.getElementById('composerHashtagsInput').value = '';
+      document.getElementById('composerCharCount').textContent = '0';
+      composerMediaFiles = [];
+      renderMediaPreviewStrip();
+      closeComposerModal();
+
+      // Refresh left sidebar stats & re-render feed
+      updateLeftSidebarStats();
+      showToast('Post published to Chuka community! 🚀');
+
+      // Reset to For You tab to immediately show newly created post
+      currentTab = 'for-you';
+      currentPage = 1;
+      document.querySelectorAll('.feed-filter-pill').forEach(p => {
+        p.classList.toggle('active', p.getAttribute('data-tab') === 'for-you');
+      });
+      renderFeed(true);
+    }
+
+    // ─── 6. Feed Rendering Engine ──────────────────────────────────────────────
+    function getFilteredPosts() {
+      let posts = NexovantaDB.Posts.getAll();
+
+      // Apply Filter Tabs
+      if (currentTab === 'latest') {
+        posts = posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (currentTab === 'news') {
+        posts = posts.filter(p => p.post_type === 'news' || p.category === 'news');
+      } else if (currentTab === 'videos') {
+        posts = posts.filter(p => p.post_type === 'video' || p.media?.some(m => m.type === 'video'));
+      } else if (currentTab === 'events') {
+        posts = posts.filter(p => p.post_type === 'event' || p.category === 'event');
+      } else if (currentTab === 'campus') {
+        posts = posts.filter(p => p.category === 'campus');
+      } else if (currentTab === 'community') {
+        posts = posts.filter(p => p.category === 'community');
+      } else if (currentTab === 'business') {
+        posts = posts.filter(p => p.category === 'business');
+      } else if (currentTab === 'saved') {
+        const savedMap = NexovantaDB.SavedPosts.getByUser(currentUser.id);
+        const savedIds = new Set(savedMap.map(p => p.id));
+        posts = posts.filter(p => savedIds.has(p.id));
+      }
+
+      // Apply Search Query
+      if (searchQuery) {
+        posts = posts.filter(p =>
+          p.content.toLowerCase().includes(searchQuery) ||
+          p.author_username.toLowerCase().includes(searchQuery) ||
+          (p.location && p.location.toLowerCase().includes(searchQuery)) ||
+          p.hashtags?.some(h => h.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      return posts;
+    }
+
+    function renderFeed(reset = false) {
+      const container = document.getElementById('postsFeedContainer');
+      const skeleton = document.getElementById('feedSkeletonLoader');
+      const emptyState = document.getElementById('feedEmptyState');
+      const loadMoreWrap = document.getElementById('loadMoreWrap');
+
+      if (!container) return;
+
+      if (reset) {
+        skeleton.style.display = 'flex';
+        container.style.display = 'none';
+        container.innerHTML = '';
+      }
+
+      const allFiltered = getFilteredPosts();
+      const paginated = allFiltered.slice(0, currentPage * postsPerPage);
+      const hasMore = allFiltered.length > paginated.length;
+
+      // Small natural delay for skeleton polish on tab change
+      setTimeout(() => {
+        skeleton.style.display = 'none';
+
+        if (paginated.length === 0) {
+          container.style.display = 'none';
+          emptyState.classList.add('show');
+          loadMoreWrap.style.display = 'none';
+          return;
+        }
+
+        emptyState.classList.remove('show');
+        container.style.display = 'flex';
+
+        container.innerHTML = paginated.map(post => createPostCardHtml(post)).join('');
+
+        if (hasMore) {
+          loadMoreWrap.style.display = 'block';
+        } else {
+          loadMoreWrap.style.display = 'none';
+        }
+      }, reset ? 150 : 0);
+    }
+
+    function createPostCardHtml(post) {
+      const author = NexovantaDB.Users.getByUsername(post.author_username) || {
+        username: post.author_username,
+        full_name: post.author_username,
+        role: post.category || 'student'
+      };
+
+      const isOwnPost = currentUser && (currentUser.id === post.author_id || currentUser.username === post.author_username);
+      const canDelete = isOwnPost || currentUser.account_role === 'admin' || currentUser.account_role === 'moderator';
+
+      const reactionsCount = NexovantaDB.Reactions.countByPost(post.id);
+      const hasLiked = currentUser ? NexovantaDB.Reactions.hasReacted(post.id, currentUser.id) : false;
+      const commentsCount = NexovantaDB.Comments.countByPost(post.id);
+      const isSaved = currentUser ? NexovantaDB.SavedPosts.isSaved(currentUser.id, post.id) : false;
+
+      // Content formatting: #hashtags, @mentions, and expandable text
+      const formattedContent = formatPostContent(post.content);
+
+      // Media Layout
+      const mediaHtml = createMediaGridHtml(post.media || []);
+
+      return `
+        <article class="feed-post-card" id="postCard-${post.id}">
+          <!-- Header -->
+          <div class="feed-post-header">
+            <a href="profile.html?user=${encodeURIComponent(post.author_username)}" class="feed-post-author-group">
+              ${NexovantaDB.getAvatarHtml(post.author_username, author.avatar_url, 44)}
+              <div class="feed-post-author-info">
+                <div class="feed-post-author-row">
+                  <span class="feed-post-username">@${escapeHtml(post.author_username)}</span>
+                  <span class="feed-role-badge ${author.role || 'student'}" style="margin-bottom: 0; padding: 2px 7px; font-size: 0.65rem;">
+                    ${getRoleBadgeHtml(author.role || 'student')}
+                  </span>
+                </div>
+                <div class="feed-post-meta-row">
+                  <span class="feed-post-time"><i class="fa-regular fa-clock"></i> ${NexovantaDB.timeAgo(post.created_at)}</span>
+                  ${post.location ? `<span>•</span> <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(post.location)}</span>` : ''}
+                  <span>•</span>
+                  <span class="feed-category-pill ${post.category || 'campus'}">${escapeHtml(post.category || 'campus')}</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- More Options Dropdown -->
+            <div class="feed-post-options-wrap">
+              <button class="feed-post-options-btn" onclick="togglePostDropdown('${post.id}', event)" title="More options" aria-label="Post Options">
+                <i class="fa-solid fa-ellipsis"></i>
+              </button>
+              <div class="feed-post-dropdown-menu" id="postDropdown-${post.id}">
+                <button class="feed-post-dropdown-btn" onclick="toggleSavePost('${post.id}')">
+                  <i class="fa-${isSaved ? 'solid' : 'regular'} fa-bookmark"></i>
+                  <span>${isSaved ? 'Remove from Saved' : 'Save Post'}</span>
+                </button>
+                <button class="feed-post-dropdown-btn" onclick="sharePost('${post.id}')">
+                  <i class="fa-solid fa-share-nodes"></i>
+                  <span>Share Post</span>
+                </button>
+                <button class="feed-post-dropdown-btn" onclick="openReportModal('${post.id}')">
+                  <i class="fa-solid fa-flag"></i>
+                  <span>Report Content</span>
+                </button>
+                ${canDelete ? `
+                  <div class="feed-dropdown-divider"></div>
+                  <button class="feed-post-dropdown-btn delete" onclick="confirmDeletePost('${post.id}')">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Delete Post</span>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- Post Content -->
+          <div class="feed-post-content" id="postContent-${post.id}">
+            ${formattedContent}
+          </div>
+
+          <!-- Media Display -->
+          ${mediaHtml}
+
+          <!-- Reaction Summary Strip -->
+          <div class="feed-post-summary-strip">
+            <div class="feed-likes-summary">
+              <span class="feed-likes-icon-badge"><i class="fa-solid fa-heart"></i></span>
+              <span id="likesSummaryCount-${post.id}">${reactionsCount} ${reactionsCount === 1 ? 'like' : 'likes'}</span>
+            </div>
+            <div class="feed-post-counts-group">
+              <span style="cursor: pointer;" onclick="toggleCommentsSection('${post.id}')">
+                <span id="commentsSummaryCount-${post.id}">${commentsCount}</span> ${commentsCount === 1 ? 'comment' : 'comments'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="feed-post-actions-bar">
+            <!-- Like Button -->
+            <button class="feed-action-btn like-btn ${hasLiked ? 'active' : ''}" id="likeBtn-${post.id}" onclick="handleLikeToggle('${post.id}')">
+              <i class="fa-${hasLiked ? 'solid' : 'regular'} fa-heart"></i>
+              <span>Like</span>
+            </button>
+
+            <!-- Comment Button -->
+            <button class="feed-action-btn comment-btn" onclick="toggleCommentsSection('${post.id}')">
+              <i class="fa-regular fa-comment"></i>
+              <span>Comment</span>
+            </button>
+
+            <!-- Share Button -->
+            <button class="feed-action-btn share-btn" onclick="sharePost('${post.id}')">
+              <i class="fa-solid fa-share-nodes"></i>
+              <span>Share</span>
+            </button>
+
+            <!-- Save Bookmark Button -->
+            <button class="feed-action-btn save-btn ${isSaved ? 'active' : ''}" id="saveBtn-${post.id}" onclick="toggleSavePost('${post.id}')">
+              <i class="fa-${isSaved ? 'solid' : 'regular'} fa-bookmark"></i>
+              <span>Save</span>
+            </button>
+          </div>
+
+          <!-- Inline Comment Section -->
+          <div class="feed-comment-section" id="commentSection-${post.id}">
+            <div class="feed-comment-composer">
+              ${NexovantaDB.getAvatarHtml(currentUser.username, currentUser.avatar_url, 34)}
+              <div class="feed-comment-input-box">
+                <input type="text" id="inlineCommentInput-${post.id}" class="feed-comment-input" placeholder="Write a comment..." onkeydown="handleCommentKey(event, '${post.id}')">
+                <button type="button" class="feed-comment-send-btn" onclick="submitInlineComment('${post.id}')">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Comments List -->
+            <div class="feed-comments-list" id="inlineCommentsList-${post.id}">
+              <!-- Dynamic comments injected on thread open -->
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function formatPostContent(rawText) {
+      if (!rawText) return '';
+      let text = escapeHtml(rawText);
+
+      // Parse hashtags: #tag
+      text = text.replace(/#([a-zA-Z0-9_]+)/g, '<span class="hashtag" onclick="filterByHashtag(\'$1\')">#$1</span>');
+
+      // Parse mentions: @username
+      text = text.replace(/@([a-zA-Z0-9_]+)/g, '<a href="profile.html?user=$1" class="mention">@$1</a>');
+
+      // Expandable text if > 300 characters
+      if (text.length > 300) {
+        const shortText = text.slice(0, 280);
+        const restText = text.slice(280);
+        return `
+          <span>${shortText}</span><span id="moreText" style="display: none;">${restText}</span>
+          <button type="button" class="feed-read-more-btn" onclick="toggleReadMore(this)">... See more</button>
+        `;
+      }
+
+      return text;
+    }
+
+    window.toggleReadMore = function(btn) {
+      const moreSpan = btn.previousElementSibling;
+      if (moreSpan.style.display === 'none') {
+        moreSpan.style.display = 'inline';
+        btn.textContent = ' See less';
+      } else {
+        moreSpan.style.display = 'none';
+        btn.textContent = '... See more';
+      }
+    };
+
+    window.filterByHashtag = function(tag) {
+      const searchInput = document.getElementById('feedSearchInput');
+      if (searchInput) {
+        searchInput.value = `#${tag}`;
+        searchQuery = `#${tag}`.toLowerCase();
+        currentPage = 1;
+        renderFeed(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    function createMediaGridHtml(mediaList) {
+      if (!mediaList || mediaList.length === 0) return '';
+
+      if (mediaList.length === 1) {
+        const m = mediaList[0];
+        if (m.type === 'video') {
+          return `
+            <div class="feed-post-media-grid single">
+              <video src="${m.url}" controls playsinline preload="metadata"></video>
+            </div>
+          `;
+        }
+        return `
+          <div class="feed-post-media-grid single">
+            <img src="${m.url}" alt="Post Media" onclick="openLightbox('${m.url}', 'image')">
+          </div>
+        `;
+      }
+
+      if (mediaList.length === 2) {
+        return `
+          <div class="feed-post-media-grid double">
+            ${mediaList.map(m => `
+              <img src="${m.url}" alt="Post Media" onclick="openLightbox('${m.url}', '${m.type}')">
+            `).join('')}
+          </div>
+        `;
+      }
+
+      if (mediaList.length === 3) {
+        return `
+          <div class="feed-post-media-grid triple">
+            <div class="media-item-0">
+              <img src="${mediaList[0].url}" alt="Post Media" onclick="openLightbox('${mediaList[0].url}', '${mediaList[0].type}')">
+            </div>
+            <div>
+              <img src="${mediaList[1].url}" alt="Post Media" onclick="openLightbox('${mediaList[1].url}', '${mediaList[1].type}')">
+            </div>
+            <div>
+              <img src="${mediaList[2].url}" alt="Post Media" onclick="openLightbox('${mediaList[2].url}', '${mediaList[2].type}')">
+            </div>
+          </div>
+        `;
+      }
+
+      // 4 or more media items
+      const firstThree = mediaList.slice(0, 3);
+      const remainingCount = mediaList.length - 3;
+      const fourth = mediaList[3];
+
+      return `
+        <div class="feed-post-media-grid multi">
+          ${firstThree.map(m => `
+            <div class="media-box">
+              <img src="${m.url}" alt="Post Media" onclick="openLightbox('${m.url}', '${m.type}')">
+            </div>
+          `).join('')}
+          <div class="media-box" onclick="openLightbox('${fourth.url}', '${fourth.type}')">
+            <img src="${fourth.url}" alt="Post Media">
+            ${remainingCount > 1 ? `<div class="feed-media-more-overlay">+${remainingCount}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ─── 7. Post Actions (Like, Comment, Save, Share, Delete) ───────────────────
+    window.handleLikeToggle = function(postId) {
+      if (!currentUser) return;
+      const result = NexovantaDB.Reactions.toggle(postId, currentUser.id);
+
+      const btn = document.getElementById(`likeBtn-${postId}`);
+      const summaryEl = document.getElementById(`likesSummaryCount-${postId}`);
+
+      if (btn) {
+        const isAdded = result.action === 'added';
+        btn.classList.toggle('active', isAdded);
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = isAdded ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        }
+      }
+
+      if (summaryEl) {
+        summaryEl.textContent = `${result.count} ${result.count === 1 ? 'like' : 'likes'}`;
+      }
+    };
+
+    window.toggleSavePost = function(postId) {
+      if (!currentUser) return;
+      const saved = NexovantaDB.SavedPosts.toggle(currentUser.id, postId);
+
+      const btn = document.getElementById(`saveBtn-${postId}`);
+      if (btn) {
+        btn.classList.toggle('active', saved);
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = saved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+        }
+      }
+
+      // Close dropdown if open
+      document.getElementById(`postDropdown-${postId}`)?.classList.remove('show');
+
+      // Update sidebar badge
+      updateLeftSidebarStats();
+
+      showToast(saved ? 'Post saved to your bookmarks 📑' : 'Post removed from saved bookmarks');
+
+      // If on saved tab, reload
+      if (currentTab === 'saved') {
+        renderFeed(false);
+      }
+    };
+
+    window.sharePost = function(postId) {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?post=${postId}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Nexovanta Chuka Community Post',
+          text: 'Check out this discussion on Nexovanta Chuka:',
+          url: shareUrl
+        }).catch(() => copyToClipboard(shareUrl));
+      } else {
+        copyToClipboard(shareUrl);
+      }
+      document.getElementById(`postDropdown-${postId}`)?.classList.remove('show');
+    };
+
+    function copyToClipboard(text) {
+      navigator.clipboard?.writeText(text).then(() => {
+        showToast('Post link copied to clipboard! 🔗');
+      }).catch(() => {
+        showToast('Link copied!');
+      });
+    }
+
+    window.togglePostDropdown = function(postId, event) {
+      event.stopPropagation();
+      const menu = document.getElementById(`postDropdown-${postId}`);
+      // Close other post dropdowns
+      document.querySelectorAll('.feed-post-dropdown-menu').forEach(m => {
+        if (m !== menu) m.classList.remove('show');
+      });
+      menu?.classList.toggle('show');
+    };
+
+    window.confirmDeletePost = function(postId) {
+      document.getElementById(`postDropdown-${postId}`)?.classList.remove('show');
+      if (confirm('Are you sure you want to delete this community post? This action cannot be undone.')) {
+        const deleted = NexovantaDB.Posts.delete(postId, currentUser.id);
+        if (deleted) {
+          const card = document.getElementById(`postCard-${postId}`);
+          if (card) {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => card.remove(), 300);
+          }
+          updateLeftSidebarStats();
+          showToast('Post successfully deleted.');
+        } else {
+          showToast('Error: Unable to delete post.');
+        }
+      }
+    };
+
+    // ─── 8. Comments System (Inline & Modal) ────────────────────────────────────
+    window.toggleCommentsSection = function(postId) {
+      const section = document.getElementById(`commentSection-${postId}`);
+      if (!section) return;
+
+      section.classList.toggle('open');
+      if (section.classList.contains('open')) {
+        renderInlineComments(postId);
+        setTimeout(() => document.getElementById(`inlineCommentInput-${postId}`)?.focus(), 150);
+      }
+    };
+
+    function renderInlineComments(postId) {
+      const listEl = document.getElementById(`inlineCommentsList-${postId}`);
+      if (!listEl) return;
+
+      const comments = NexovantaDB.Comments.getByPost(postId);
+      if (comments.length === 0) {
+        listEl.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-dim); padding: 8px 0;">No comments yet. Start the conversation!</div>`;
+        return;
+      }
+
+      listEl.innerHTML = comments.map(c => createCommentBubbleHtml(c)).join('');
+    }
+
+    function createCommentBubbleHtml(comment) {
+      const canDelete = currentUser && (currentUser.id === comment.author_id || currentUser.account_role === 'admin');
+      return `
+        <div class="feed-comment-item" id="commentItem-${comment.id}">
+          ${NexovantaDB.getAvatarHtml(comment.author_username, null, 32)}
+          <div class="feed-comment-bubble">
+            <div class="feed-comment-header">
+              <a href="profile.html?user=${encodeURIComponent(comment.author_username)}" class="feed-comment-author">
+                @${escapeHtml(comment.author_username)}
+              </a>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="feed-comment-time">${NexovantaDB.timeAgo(comment.created_at)}</span>
+                ${canDelete ? `
+                  <button type="button" class="feed-comment-delete-btn" onclick="deleteComment('${comment.id}', '${comment.post_id}')" title="Delete comment">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="feed-comment-text">${escapeHtml(comment.content)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.handleCommentKey = function(event, postId) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitInlineComment(postId);
+      }
+    };
+
+    window.submitInlineComment = function(postId) {
+      const input = document.getElementById(`inlineCommentInput-${postId}`);
+      if (!input) return;
+
+      const content = input.value.trim();
+      if (!content) return;
+
+      NexovantaDB.Comments.create({
+        post_id: postId,
+        author_username: currentUser.username,
+        author_id: currentUser.id,
+        content: content
+      });
+
+      input.value = '';
+
+      // Update count summaries
+      const newCount = NexovantaDB.Comments.countByPost(postId);
+      const summaryEl = document.getElementById(`commentsSummaryCount-${postId}`);
+      if (summaryEl) summaryEl.textContent = newCount;
+
+      renderInlineComments(postId);
+      showToast('Comment posted! 💬');
+    };
+
+    window.deleteComment = function(commentId, postId) {
+      if (confirm('Delete this comment?')) {
+        NexovantaDB.Comments.delete(commentId, currentUser.id);
+        const newCount = NexovantaDB.Comments.countByPost(postId);
+        const summaryEl = document.getElementById(`commentsSummaryCount-${postId}`);
+        if (summaryEl) summaryEl.textContent = newCount;
+
+        renderInlineComments(postId);
+        if (activeModalPostId === postId) {
+          renderModalComments(postId);
+        }
+        showToast('Comment deleted.');
+      }
+    };
+
+    // Full Comment Thread Modal
+    window.openCommentModal = function(postId) {
+      const post = NexovantaDB.Posts.getById(postId);
+      if (!post) return;
+
+      activeModalPostId = postId;
+      const modal = document.getElementById('commentModal');
+      const preview = document.getElementById('commentModalPostPreview');
+      if (modal && preview) {
+        preview.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            ${NexovantaDB.getAvatarHtml(post.author_username, null, 42)}
+            <div>
+              <div style="font-weight: 700; color: #fff;">@${escapeHtml(post.author_username)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim);">${NexovantaDB.timeAgo(post.created_at)}</div>
+            </div>
+          </div>
+          <div style="font-size: 0.95rem; color: #e2e8f0; line-height: 1.6; margin-bottom: 12px;">
+            ${formatPostContent(post.content)}
+          </div>
+          ${createMediaGridHtml(post.media || [])}
+        `;
+
+        renderModalComments(postId);
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    window.closeCommentModal = function() {
+      const modal = document.getElementById('commentModal');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        activeModalPostId = null;
+      }
+    };
+
+    function renderModalComments(postId) {
+      const listEl = document.getElementById('modalCommentsList');
+      const countEl = document.getElementById('modalCommentsCount');
+      if (!listEl) return;
+
+      const comments = NexovantaDB.Comments.getByPost(postId);
+      if (countEl) countEl.textContent = comments.length;
+
+      if (comments.length === 0) {
+        listEl.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 24px;">No comments yet on this discussion.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = comments.map(c => createCommentBubbleHtml(c)).join('');
+    }
+
+    document.getElementById('modalCommentForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!activeModalPostId) return;
+
+      const input = document.getElementById('modalCommentInput');
+      const content = input.value.trim();
+      if (!content) return;
+
+      NexovantaDB.Comments.create({
+        post_id: activeModalPostId,
+        author_username: currentUser.username,
+        author_id: currentUser.id,
+        content: content
+      });
+
+      input.value = '';
+      renderModalComments(activeModalPostId);
+
+      // Also update inline count if visible
+      const newCount = NexovantaDB.Comments.countByPost(activeModalPostId);
+      const summaryEl = document.getElementById(`commentsSummaryCount-${activeModalPostId}`);
+      if (summaryEl) summaryEl.textContent = newCount;
+      renderInlineComments(activeModalPostId);
+
+      showToast('Comment posted! 💬');
+    });
+
+    // ─── 9. Report Content Engine ──────────────────────────────────────────────
+    window.openReportModal = function(postId) {
+      activeReportPostId = postId;
+      document.getElementById(`postDropdown-${postId}`)?.classList.remove('show');
+      const modal = document.getElementById('reportModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    window.closeReportModal = function() {
+      const modal = document.getElementById('reportModal');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        activeReportPostId = null;
+      }
+    };
+
+    document.getElementById('reportForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!activeReportPostId || !currentUser) return;
+
+      const reason = document.getElementById('reportReasonSelect').value;
+      const details = document.getElementById('reportDetailsInput').value.trim();
+
+      NexovantaDB.Reports.create({
+        reporter_id: currentUser.id,
+        reporter_username: currentUser.username,
+        content_type: 'post',
+        content_id: activeReportPostId,
+        reason: reason,
+        details: details
+      });
+
+      closeReportModal();
+      document.getElementById('reportReasonSelect').selectedIndex = 0;
+      document.getElementById('reportDetailsInput').value = '';
+      showToast('Report submitted for moderator review. Thank you for keeping Chuka safe!');
+    });
+
+    // ─── 10. Lightbox Viewer ───────────────────────────────────────────────────
+    window.openLightbox = function(url, type) {
+      const modal = document.getElementById('lightboxModal');
+      const content = document.getElementById('lightboxContent');
+      if (modal && content) {
+        if (type === 'video') {
+          content.innerHTML = `<video src="${url}" controls autoplay class="feed-lightbox-video"></video>`;
+        } else {
+          content.innerHTML = `<img src="${url}" alt="Full preview" class="feed-lightbox-img">`;
+        }
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    window.closeLightbox = function() {
+      const modal = document.getElementById('lightboxModal');
+      const content = document.getElementById('lightboxContent');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        if (content) content.innerHTML = '';
+      }
+    };
+
+    document.getElementById('lightboxModal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'lightboxModal') closeLightbox();
+    });
+
+    // ─── 11. Right Sidebar Widgets ─────────────────────────────────────────────
+    function initRightSidebarWidgets() {
+      renderUpcomingEvents();
+      renderTrendingDiscussions();
+      renderSuggestedAccounts();
+    }
+
+    function renderUpcomingEvents() {
+      const listEl = document.getElementById('sidebarEventsList');
+      if (!listEl) return;
+
+      const upcoming = NexovantaDB.Events.getUpcoming().slice(0, 3);
+      if (upcoming.length === 0) {
+        listEl.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-dim);">No upcoming events scheduled.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = upcoming.map(event => {
+        const d = new Date(event.start_at);
+        const month = d.toLocaleString('en-US', { month: 'short' });
+        const day = d.getDate();
+        const rsvp = currentUser ? NexovantaDB.EventRSVPs.get(event.id, currentUser.id) : null;
+        const isGoing = rsvp && rsvp.response === 'going';
+
+        return `
+          <div class="feed-event-item">
+            <div class="feed-event-date-box">
+              <span class="feed-event-month">${month}</span>
+              <span class="feed-event-day">${day}</span>
+            </div>
+            <div class="feed-event-details">
+              <div class="feed-event-name" title="${escapeHtml(event.title)}">${escapeHtml(event.title)}</div>
+              <div class="feed-event-venue"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(event.venue || event.location || 'Chuka')}</div>
+              <div class="feed-event-footer">
+                <span class="feed-event-price-badge">${event.is_free ? 'FREE' : `KES ${event.price}`}</span>
+                <button class="feed-event-rsvp-btn ${isGoing ? 'going' : ''}" onclick="toggleEventRsvp('${event.id}', this)">
+                  ${isGoing ? '✓ Going' : '+ RSVP'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleEventRsvp = function(eventId, btn) {
+      if (!currentUser) return;
+      const currentRsvp = NexovantaDB.EventRSVPs.get(eventId, currentUser.id);
+      const newResponse = (currentRsvp && currentRsvp.response === 'going') ? 'interested' : 'going';
+
+      NexovantaDB.EventRSVPs.upsert(eventId, currentUser.id, newResponse);
+
+      const isGoing = newResponse === 'going';
+      btn.classList.toggle('going', isGoing);
+      btn.textContent = isGoing ? '✓ Going' : '+ RSVP';
+
+      showToast(isGoing ? 'RSVP confirmed! See you there 🎉' : 'Marked as interested.');
+    };
+
+    function renderTrendingDiscussions() {
+      const listEl = document.getElementById('sidebarTrendingList');
+      if (!listEl) return;
+
+      const posts = NexovantaDB.Posts.getAll();
+      const withCounts = posts.map(p => ({
+        post: p,
+        commentsCount: NexovantaDB.Comments.countByPost(p.id)
+      })).sort((a, b) => b.commentsCount - a.commentsCount).slice(0, 3);
+
+      if (withCounts.length === 0 || withCounts[0].commentsCount === 0) {
+        listEl.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-dim);">No trending discussions yet.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = withCounts.map(item => `
+        <div class="feed-trending-item" onclick="openCommentModal('${item.post.id}')">
+          <div class="feed-trending-snippet">${escapeHtml(item.post.content || 'Discussion')}</div>
+          <div class="feed-trending-meta">
+            <span class="feed-trending-author">@${escapeHtml(item.post.author_username)}</span>
+            <span><i class="fa-solid fa-comment"></i> ${item.commentsCount} comments</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSuggestedAccounts() {
+      const listEl = document.getElementById('sidebarSuggestedList');
+      if (!listEl) return;
+
+      const allUsers = NexovantaDB.Users.getAll();
+      const suggestions = allUsers.filter(u => u.id !== currentUser?.id).slice(0, 3);
+
+      if (suggestions.length === 0) {
+        listEl.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-dim);">No suggestions available.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = suggestions.map(u => `
+        <div class="feed-suggested-item">
+          <a href="profile.html?user=${encodeURIComponent(u.username)}" class="feed-suggested-left">
+            ${NexovantaDB.getAvatarHtml(u.username, u.avatar_url, 36)}
+            <div class="feed-suggested-info">
+              <span class="feed-suggested-name">${escapeHtml(u.full_name || u.username)}</span>
+              <span class="feed-suggested-role">@${escapeHtml(u.username)} • ${escapeHtml(u.role || 'Member')}</span>
+            </div>
+          </a>
+          <a href="profile.html?user=${encodeURIComponent(u.username)}" class="feed-suggested-btn">
+            View
+          </a>
+        </div>
+      `).join('');
+    }
+
+    // ─── 12. Infinite Scroll Observer ──────────────────────────────────────────
+    function initInfiniteScroll() {
+      const sentinel = document.getElementById('infiniteScrollSentinel');
+      if (!sentinel || !window.IntersectionObserver) return;
+
+      infiniteObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          const allFiltered = getFilteredPosts();
+          if (allFiltered.length > currentPage * postsPerPage) {
+            currentPage++;
+            renderFeed(false);
+          }
+        }
+      }, { rootMargin: '200px' });
+
+      infiniteObserver.observe(sentinel);
+    }
+
+    // ─── Utility Helpers ───────────────────────────────────────────────────────
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>

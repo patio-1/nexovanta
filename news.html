@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community News & Bulletins | Nexovanta Chuka Community</title>
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <style>
+    /* ==========================================================================
+       NEWS PAGE STYLES - NEXOVANTA CHUKA COMMUNITY
+       ========================================================================== */
+    :root {
+      --cat-campus: #00d2ff;
+      --cat-education: #38bdf8;
+      --cat-community: #00f5a0;
+      --cat-business: #f59e0b;
+      --cat-sports: #f97316;
+      --cat-culture: #a855f7;
+      --cat-lostfound: #ef4444;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+    }
+
+    /* Fixed Background Video & Overlay */
+    .video-bg-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .bg-video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.68) contrast(1.1);
+    }
+    .video-overlay-layer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 15%, rgba(13, 23, 44, 0.78) 0%, rgba(6, 11, 24, 0.95) 100%);
+      pointer-events: none;
+    }
+
+    /* Top Navbar Styling */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      background: rgba(11, 20, 38, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 74px;
+      gap: 16px;
+    }
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .brand-logo-img {
+      height: 44px;
+      width: auto;
+      border-radius: var(--radius-sm);
+      filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.4));
+    }
+    .brand-text-block {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-name {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .brand-badge {
+      font-size: 0.68rem;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-search-wrap {
+      flex: 1;
+      max-width: 320px;
+      position: relative;
+      display: none;
+    }
+    @media (min-width: 900px) {
+      .nav-search-wrap { display: block; }
+    }
+    .nav-search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 9px 16px 9px 38px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .nav-search-input:focus {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.08);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+    }
+    .nav-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      transition: var(--transition);
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .nav-link.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+    .icon-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-cyan);
+    }
+    .notif-count-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 10px;
+      padding: 1px 5px;
+      min-width: 18px;
+      text-align: center;
+      border: 2px solid var(--bg-secondary);
+    }
+
+    .notif-dropdown-menu, .user-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 330px;
+      background: rgba(11, 20, 38, 0.98);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 1100;
+      overflow: hidden;
+      animation: fadeInDown 0.2s ease forwards;
+    }
+    .notif-dropdown-menu.active, .user-dropdown-menu.active {
+      display: block;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .notif-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .notif-menu-header h4 { font-size: 0.95rem; margin: 0; }
+    .btn-text-link {
+      background: none;
+      border: none;
+      color: var(--accent-cyan);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .notif-list { max-height: 360px; overflow-y: auto; }
+    .notif-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .notif-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-main); }
+    .notif-item.unread { background: rgba(0, 210, 255, 0.07); }
+
+    .user-profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 4px 12px 4px 4px;
+      cursor: pointer;
+      color: #fff;
+      transition: var(--transition);
+    }
+    .user-profile-trigger:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.1);
+    }
+    .user-handle { font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan); }
+    .caret-icon { font-size: 0.7rem; color: var(--text-dim); }
+
+    .user-dropdown-header {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .user-dropdown-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
+    .user-dropdown-handle { font-size: 0.8rem; color: var(--accent-cyan); }
+    .user-dropdown-role {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      display: inline-block;
+      margin-top: 4px;
+      background: rgba(0, 210, 255, 0.15);
+      color: var(--accent-cyan);
+    }
+    .user-dropdown-divider { height: 1px; background: var(--border-light); margin: 6px 0; }
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 18px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 600;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .user-dropdown-item:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+    .user-dropdown-item.logout-item:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+    /* ==========================================================================
+       MAIN PAGE CONTAINER: MAX-WIDTH 1200PX
+       ========================================================================== */
+    .news-page-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px 60px 20px;
+    }
+
+    /* Hero Banner */
+    .news-hero-section {
+      background: linear-gradient(135deg, rgba(13, 23, 44, 0.92) 0%, rgba(18, 30, 58, 0.95) 100%);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      padding: 36px 32px 28px 32px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 210, 255, 0.12);
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .news-hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+    }
+    .hero-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--accent-cyan);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    /* Category Filter Tabs: All | Campus | Education | Community | Business | Sports | Culture | Lost & Found */
+    .news-category-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-light);
+      scrollbar-width: thin;
+    }
+    .news-category-scroll::-webkit-scrollbar { height: 4px; }
+    .news-category-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    .cat-pill {
+      background: rgba(13, 23, 44, 0.85);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cat-pill:hover {
+      color: #fff;
+      border-color: rgba(0, 210, 255, 0.4);
+      background: rgba(20, 36, 68, 0.9);
+    }
+    .cat-pill.active {
+      background: var(--grad-primary);
+      color: #060b18;
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0, 210, 255, 0.35);
+    }
+
+    /* 2-COLUMN LAYOUT: 70% MAIN FEED + 30% SIDEBAR */
+    .news-layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      align-items: flex-start;
+    }
+    @media (max-width: 992px) {
+      .news-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ==========================================================================
+       MAIN FEED (70%)
+       ========================================================================== */
+    .main-feed-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Featured Article Card */
+    .featured-article-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      position: relative;
+    }
+    .featured-article-card:hover {
+      border-color: rgba(0, 210, 255, 0.4);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 210, 255, 0.2);
+    }
+    .featured-cover-box {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+    @media (max-width: 640px) {
+      .featured-cover-box { height: 210px; }
+    }
+    .featured-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .featured-article-card:hover .featured-cover-img {
+      transform: scale(1.03);
+    }
+    .featured-placeholder-cover {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, #092c48 0%, #0d547d 100%);
+      color: var(--accent-cyan);
+    }
+    .featured-tag-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--grad-primary);
+      color: #060b18;
+      font-weight: 800;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .featured-body {
+      padding: 28px;
+    }
+    .featured-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .featured-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .featured-title:hover {
+      color: var(--accent-cyan);
+    }
+    .featured-excerpt {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .featured-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* News Grid (2-Columns on Desktop, 1 on Mobile) */
+    .news-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+    }
+    @media (max-width: 680px) {
+      .news-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Standard News Card */
+    .news-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .news-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(0, 210, 255, 0.4);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 210, 255, 0.15);
+    }
+    .news-card-cover {
+      width: 100%;
+      height: 170px;
+      position: relative;
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+    .news-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .news-card:hover .news-card-img {
+      transform: scale(1.05);
+    }
+    .news-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+    }
+    .news-placeholder.campus { background: linear-gradient(135deg, #082944 0%, #0d547d 100%); color: var(--cat-campus); }
+    .news-placeholder.education { background: linear-gradient(135deg, #0b2f4f 0%, #15629c 100%); color: var(--cat-education); }
+    .news-placeholder.community { background: linear-gradient(135deg, #093327 0%, #106652 100%); color: var(--cat-community); }
+    .news-placeholder.business { background: linear-gradient(135deg, #38280a 0%, #755110 100%); color: var(--cat-business); }
+    .news-placeholder.sports { background: linear-gradient(135deg, #3d1c09 0%, #7e360f 100%); color: var(--cat-sports); }
+    .news-placeholder.culture { background: linear-gradient(135deg, #2e1045 0%, #612291 100%); color: var(--cat-culture); }
+    .news-placeholder.lostfound { background: linear-gradient(135deg, #3d1010 0%, #7d1c1c 100%); color: var(--cat-lostfound); }
+
+    .card-category-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      color: #fff;
+    }
+    .card-category-badge.campus { background: rgba(0, 210, 255, 0.25); border: 1px solid var(--cat-campus); }
+    .card-category-badge.education { background: rgba(56, 189, 248, 0.25); border: 1px solid var(--cat-education); }
+    .card-category-badge.community { background: rgba(0, 245, 160, 0.25); border: 1px solid var(--cat-community); }
+    .card-category-badge.business { background: rgba(245, 158, 11, 0.25); border: 1px solid var(--cat-business); }
+    .card-category-badge.sports { background: rgba(249, 115, 22, 0.25); border: 1px solid var(--cat-sports); }
+    .card-category-badge.culture { background: rgba(168, 85, 247, 0.25); border: 1px solid var(--cat-culture); }
+    .card-category-badge.lostfound { background: rgba(239, 68, 68, 0.25); border: 1px solid var(--cat-lostfound); }
+
+    .status-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(8px);
+    }
+    .status-badge.published {
+      background: rgba(16, 185, 129, 0.25);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+    .status-badge.pending {
+      background: rgba(245, 158, 11, 0.25);
+      border: 1px solid #f59e0b;
+      color: #fcd34d;
+    }
+
+    .news-card-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .news-card-headline {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 2.7em;
+      cursor: pointer;
+    }
+    .news-card-headline:hover {
+      color: var(--accent-cyan);
+    }
+    .news-card-excerpt {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 3em;
+    }
+    .news-card-footer {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    .author-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .author-handle-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .author-handle-link:hover { text-decoration: underline; }
+    .btn-read-more {
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--accent-cyan);
+      font-family: var(--font-heading);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: var(--transition);
+    }
+    .btn-read-more:hover {
+      background: var(--accent-cyan);
+      color: #060b18;
+    }
+
+    /* ==========================================================================
+       SIDEBAR (30%)
+       ========================================================================== */
+    .news-sidebar-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .sidebar-widget {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+    }
+    .widget-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .widget-title i {
+      color: var(--accent-cyan);
+    }
+
+    /* Breaking News Ticker List */
+    .breaking-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .breaking-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .breaking-item:hover .breaking-headline {
+      color: var(--accent-cyan);
+    }
+    .breaking-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.72rem;
+      margin-bottom: 4px;
+    }
+    .pulse-dot-red {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulseAnimation 1.5s infinite;
+    }
+    .breaking-headline {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #f1f5f9;
+      line-height: 1.35;
+    }
+
+    /* Sidebar Category List */
+    .sidebar-cat-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar-cat-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    .sidebar-cat-item:hover, .sidebar-cat-item.active {
+      background: rgba(0, 210, 255, 0.12);
+      color: var(--accent-cyan);
+      border-left: 3px solid var(--accent-cyan);
+    }
+    .sidebar-cat-count {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      color: #cbd5e1;
+    }
+
+    /* Submit CTA Card */
+    .submit-cta-card {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(0, 245, 160, 0.12) 100%);
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+    }
+    .submit-cta-card h4 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .submit-cta-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* Reporter Guidelines Widget */
+    .guideline-item {
+      display: flex;
+      gap: 10px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      line-height: 1.45;
+    }
+    .guideline-item i {
+      color: var(--accent-teal);
+      margin-top: 3px;
+    }
+
+    /* ==========================================================================
+       MODALS: ARTICLE DETAIL & SUBMIT NEWS FORM
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(6, 11, 24, 0.88);
+      backdrop-filter: blur(16px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-backdrop.active {
+      display: flex;
+      animation: fadeIn 0.2s ease forwards;
+    }
+    .modal-card {
+      background: rgba(13, 23, 44, 0.98);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 210, 255, 0.2);
+      position: relative;
+      animation: zoomIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-light);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      z-index: 10;
+      transition: var(--transition);
+    }
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    /* Detail Modal Elements */
+    .detail-cover-box {
+      width: 100%;
+      height: 260px;
+      position: relative;
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+    .detail-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .detail-modal-body {
+      padding: 30px;
+    }
+    .detail-headline {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+    .detail-author-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .detail-author-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .detail-article-text {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #cbd5e1;
+      margin-bottom: 28px;
+      white-space: pre-line;
+    }
+    .source-citation-box {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--accent-cyan);
+      padding: 12px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Social Reaction Bar on Article */
+    .article-engagement-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-top: 1px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 24px;
+    }
+    .engagement-left, .engagement-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-engage {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    .btn-engage:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-engage.liked {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* Moderator Actions in Article Modal */
+    .moderator-action-strip {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Comments Section */
+    .comments-container {
+      margin-top: 24px;
+    }
+    .comments-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comment-input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .comment-text-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 10px 18px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .comment-text-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+    }
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .comment-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      gap: 10px;
+    }
+    .comment-meta {
+      flex: 1;
+    }
+    .comment-author-name {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+    }
+    .comment-time {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-left: 8px;
+    }
+    .comment-content {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    /* Submit News Form */
+    .form-header {
+      padding: 24px 28px 16px 28px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .form-header h3 { font-size: 1.4rem; margin: 0 0 6px 0; }
+    .form-header p { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+    .form-body { padding: 24px 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .char-counter { font-size: 0.75rem; text-transform: none; color: var(--text-dim); }
+    .char-counter.valid { color: var(--accent-teal); }
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 11px 16px;
+      color: #fff;
+      font-family: var(--font-family);
+      font-size: 0.92rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .form-control:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+      background: rgba(0, 210, 255, 0.05);
+    }
+    textarea.form-control {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    /* Cover Upload Preview in Form */
+    .cover-upload-box {
+      border: 2px dashed var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      transition: var(--transition);
+    }
+    .cover-upload-box:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.05);
+    }
+    .cover-preview-img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      display: none;
+      margin-top: 10px;
+    }
+
+    /* Mobile Bottom Navigation */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: rgba(11, 20, 38, 0.96);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 999;
+      padding: 0 10px;
+    }
+    @media (min-width: 769px) {
+      .mobile-bottom-nav { display: none; }
+    }
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      padding: 6px 0;
+      transition: var(--transition);
+    }
+    .bottom-nav-item i { font-size: 1.15rem; }
+    .bottom-nav-item:hover, .bottom-nav-item.active { color: var(--accent-cyan); }
+    .bottom-create-btn .plus-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--grad-primary);
+      color: #060b18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4);
+      margin-top: -16px;
+    }
+
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      background: rgba(13, 23, 44, 0.96);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 210, 255, 0.3);
+      border-radius: var(--radius-full);
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 3000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    .toast-notice.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .toast-notice .toast-icon { color: var(--accent-teal); font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Video Background Layer -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <!-- ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-wrap">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="brand-logo-img">
+        <div class="brand-text-block">
+          <span class="brand-name">NEXOVANTA</span>
+          <span class="brand-badge"><i class="fa-solid fa-newspaper"></i> COMMUNITY NEWS</span>
+        </div>
+      </a>
+
+      <!-- Desktop Search -->
+      <div class="nav-search-wrap">
+        <i class="fa-solid fa-magnifying-glass nav-search-icon"></i>
+        <input type="text" id="globalNavSearch" class="nav-search-input" placeholder="Search news, notices, lost & found...">
+      </div>
+
+      <!-- Navigation Links -->
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i> <span>Feed</span></a></li>
+          <li><a href="marketplace.html" class="nav-link"><i class="fa-solid fa-store"></i> <span>Market</span></a></li>
+          <li><a href="events.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a></li>
+          <li><a href="news.html" class="nav-link active"><i class="fa-solid fa-newspaper"></i> <span>News</span></a></li>
+          <li><a href="videos.html" class="nav-link"><i class="fa-solid fa-circle-play"></i> <span>Videos</span></a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <!-- Notifications Bell -->
+        <div class="notif-dropdown-wrapper" id="notifDropdownWrapper">
+          <button class="icon-btn" id="notifBellBtn" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notif-count-badge" id="navNotifCount" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown-menu" id="notifDropdownMenu">
+            <div class="notif-menu-header">
+              <h4>Notifications</h4>
+              <button class="btn-text-link" id="markAllReadBtn">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notifListContainer"></div>
+          </div>
+        </div>
+
+        <!-- User Dropdown (if logged in) -->
+        <div class="user-menu-wrapper" id="userMenuWrapper" style="display:none;">
+          <button class="user-profile-trigger" id="userMenuTrigger">
+            <div id="navUserAvatarWrap"></div>
+            <span class="user-handle" id="navUserHandle">@username</span>
+            <i class="fa-solid fa-chevron-down caret-icon"></i>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="user-dropdown-header">
+              <div id="dropdownAvatar"></div>
+              <div>
+                <div class="user-dropdown-name" id="dropdownFullName">Full Name</div>
+                <div class="user-dropdown-handle" id="dropdownHandle">@username</div>
+                <div class="user-dropdown-role" id="dropdownRoleTag">Student 🎓</div>
+              </div>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <a href="#" class="user-dropdown-item" id="navProfileLink">
+              <i class="fa-regular fa-user"></i> My Profile
+            </a>
+            <a href="events.html" class="user-dropdown-item">
+              <i class="fa-regular fa-calendar-check"></i> My Events
+            </a>
+            <a href="news.html" class="user-dropdown-item">
+              <i class="fa-regular fa-newspaper"></i> Community News
+            </a>
+            <a href="videos.html" class="user-dropdown-item">
+              <i class="fa-solid fa-clapperboard"></i> Video Studio
+            </a>
+            <div class="user-dropdown-divider"></div>
+            <button class="user-dropdown-item logout-item" id="navLogoutBtn">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+        </div>
+
+        <!-- Guest CTAs (if not logged in) -->
+        <div id="guestActions" style="display:flex; gap:10px; align-items:center;">
+          <a href="login.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+          <a href="login.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Join Chuka</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT: FULL-WIDTH MAX 1200PX
+       ========================================================================== -->
+  <main class="news-page-wrap">
+
+    <!-- Top Hero Section with Category Tabs -->
+    <section class="news-hero-section">
+      <div class="hero-top-row">
+        <div>
+          <span class="hero-badge-tag"><i class="fa-solid fa-bullhorn"></i> Official Bulletins & Community Reporting</span>
+          <h1 class="hero-title">Chuka Community News</h1>
+          <p class="hero-subtitle">
+            Stay informed with verified academic notices, Tharaka Nithi county updates, local business announcements, and lost-and-found reports.
+          </p>
+        </div>
+
+        <div>
+          <button class="btn btn-primary btn-lg" id="btnOpenSubmitNews">
+            <i class="fa-solid fa-pen-nib"></i> Submit Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs: All | Campus | Education | Community | Business | Sports | Culture | Lost & Found -->
+      <div class="news-category-scroll">
+        <button class="cat-pill active" data-category="all"><i class="fa-solid fa-newspaper"></i> All Stories</button>
+        <button class="cat-pill" data-category="campus"><i class="fa-solid fa-graduation-cap"></i> Campus</button>
+        <button class="cat-pill" data-category="education"><i class="fa-solid fa-book-bookmark"></i> Education</button>
+        <button class="cat-pill" data-category="community"><i class="fa-solid fa-people-roof"></i> Community</button>
+        <button class="cat-pill" data-category="business"><i class="fa-solid fa-store"></i> Business</button>
+        <button class="cat-pill" data-category="sports"><i class="fa-solid fa-futbol"></i> Sports</button>
+        <button class="cat-pill" data-category="culture"><i class="fa-solid fa-masks-theater"></i> Culture</button>
+        <button class="cat-pill" data-category="lostfound"><i class="fa-solid fa-magnifying-glass-location"></i> Lost & Found</button>
+      </div>
+    </section>
+
+    <!-- Two-Column Layout: Main Feed (70%) + Sidebar (30%) -->
+    <div class="news-layout-grid">
+
+      <!-- ==========================================
+           MAIN FEED COLUMN (70%)
+           ========================================== -->
+      <div class="main-feed-col">
+
+        <!-- Featured Article (Top Card) -->
+        <div id="featuredArticleContainer">
+          <!-- Featured article rendered here -->
+        </div>
+
+        <!-- News Feed Grid Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <h3 style="font-size:1.25rem; font-family:var(--font-heading); color:#fff; margin:0;">
+            <i class="fa-solid fa-layer-group" style="color:var(--accent-cyan); font-size:1rem; margin-right:6px;"></i> Latest Stories
+          </h3>
+          <span style="font-size:0.82rem; color:var(--text-muted);" id="articlesCountText">Showing 0 articles</span>
+        </div>
+
+        <!-- Standard Articles 2-Col Grid -->
+        <div class="news-cards-grid" id="newsCardsGrid">
+          <!-- Rendered standard article cards -->
+        </div>
+
+      </div>
+
+      <!-- ==========================================
+           SIDEBAR COLUMN (30%)
+           ========================================== -->
+      <aside class="news-sidebar-col">
+
+        <!-- Widget 1: Submit News CTA -->
+        <div class="submit-cta-card">
+          <div style="width:50px; height:50px; border-radius:50%; background:rgba(0, 210, 255, 0.2); color:var(--accent-cyan); display:flex; align-items:center; justify-content:center; margin:0 auto 12px auto; font-size:1.4rem;">
+            <i class="fa-solid fa-bullhorn"></i>
+          </div>
+          <h4>Have News to Share?</h4>
+          <p>Report campus announcements, hostel vacancies, lost ID cards, or community issues directly to Chuka residents.</p>
+          <button class="btn btn-primary" id="btnSidebarSubmitNews" style="width:100%;">
+            <i class="fa-solid fa-plus-circle"></i> Write an Article
+          </button>
+        </div>
+
+        <!-- Widget 2: Breaking News Ticker -->
+        <div class="sidebar-widget">
+          <div class="widget-title">
+            <span class="pulse-dot-red"></span>
+            <span>Breaking & Urgent</span>
+          </div>
+          <div id="breakingNewsList">
+            <!-- Rendered breaking list -->
+          </div>
+        </div>
+
+        <!-- Widget 3: Categories with Live Article Counts -->
+        <div class="sidebar-widget">
+          <div class="widget-title">
+            <i class="fa-solid fa-folder-tree"></i>
+            <span>Browse by Category</span>
+          </div>
+          <ul class="sidebar-cat-list" id="sidebarCategoryList">
+            <!-- Dynamic Category List -->
+          </ul>
+        </div>
+
+        <!-- Widget 4: Community Reporter Guidelines -->
+        <div class="sidebar-widget">
+          <div class="widget-title">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Reporter Guidelines</span>
+          </div>
+          <div class="guideline-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Ensure all names, dates, and locations in Chuka are accurate.</span>
+          </div>
+          <div class="guideline-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Lost & Found items should mention the safe collection desk.</span>
+          </div>
+          <div class="guideline-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Community submissions are reviewed by platform moderators.</span>
+          </div>
+          <div style="margin-top:14px; font-size:0.75rem; color:var(--text-dim); text-align:center;">
+            Nexovanta Chuka Community Press Desk
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       MOBILE BOTTOM NAVIGATION BAR
+       ========================================================================== -->
+  <nav class="mobile-bottom-nav">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="news.html" class="bottom-nav-item active">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
+    </a>
+    <button class="bottom-nav-item bottom-create-btn" id="mobileCreateNewsBtn" title="Submit News">
+      <div class="plus-circle"><i class="fa-solid fa-pen-nib"></i></div>
+      <span>Report</span>
+    </button>
+    <a href="events.html" class="bottom-nav-item">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span>Events</span>
+    </a>
+    <a href="videos.html" class="bottom-nav-item">
+      <i class="fa-solid fa-circle-play"></i>
+      <span>Videos</span>
+    </a>
+  </nav>
+
+  <!-- ==========================================================================
+       ARTICLE DETAIL MODAL
+       ========================================================================== -->
+  <div class="modal-backdrop" id="articleDetailModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeDetailModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="detail-cover-box" id="detailModalCover">
+        <!-- Cover image or styled category icon -->
+      </div>
+
+      <div class="detail-modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <span class="card-category-badge campus" id="detailModalCategory">Campus</span>
+          <span class="status-badge published" id="detailModalStatus">Published</span>
+        </div>
+
+        <h1 class="detail-headline" id="detailModalHeadline">Article Headline</h1>
+
+        <!-- Author, Avatar, Date -->
+        <div class="detail-author-bar">
+          <div class="detail-author-left">
+            <div id="detailModalAvatar"></div>
+            <div>
+              <div style="font-weight:700; color:#fff; font-size:0.92rem;" id="detailModalAuthorName">Author Name</div>
+              <a href="#" class="author-handle-link" id="detailModalAuthorHandle">@username</a>
+            </div>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-dim);" id="detailModalDate">
+            <i class="fa-regular fa-clock"></i> Just now
+          </div>
+        </div>
+
+        <!-- Moderator Action Toolbar (Visible to Admins / Moderators) -->
+        <div class="moderator-action-strip" id="moderatorActionStrip" style="display:none;">
+          <div>
+            <strong style="color:#fbbf24; font-size:0.85rem;"><i class="fa-solid fa-shield"></i> Moderator Review Panel</strong>
+            <div style="font-size:0.75rem; color:#cbd5e1;">This article is pending review before public distribution.</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-sm btn-primary" id="btnModApprove"><i class="fa-solid fa-check"></i> Approve & Publish</button>
+            <button class="btn btn-sm btn-outline" id="btnModReject" style="color:#ef4444; border-color:#ef4444;"><i class="fa-solid fa-xmark"></i> Reject</button>
+          </div>
+        </div>
+
+        <!-- Article Body -->
+        <div class="detail-article-text" id="detailModalBody"></div>
+
+        <!-- Source Citation Link -->
+        <div class="source-citation-box" id="detailModalSourceBox" style="display:none;">
+          <i class="fa-solid fa-link" style="margin-right:6px;"></i>
+          <strong>Source / Official Reference:</strong>
+          <a href="#" target="_blank" rel="noopener noreferrer" id="detailModalSourceLink" style="color:var(--accent-cyan); word-break:break-all; margin-left:4px;"></a>
+        </div>
+
+        <!-- Engagement Bar (Like, Share, Report) -->
+        <div class="article-engagement-bar">
+          <div class="engagement-left">
+            <button class="btn-engage" id="btnArticleLike">
+              <i class="fa-regular fa-heart"></i>
+              <span id="articleLikesCount">0</span> Likes
+            </button>
+            <button class="btn-engage" id="btnArticleShare">
+              <i class="fa-solid fa-share-nodes"></i> Share
+            </button>
+          </div>
+          <div class="engagement-right">
+            <button class="btn-engage" id="btnArticleReport" title="Report Inaccurate Article">
+              <i class="fa-regular fa-flag"></i> Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-container">
+          <div class="comments-title">
+            <i class="fa-regular fa-comments"></i>
+            <span>Discussion (<span id="articleCommentCount">0</span>)</span>
+          </div>
+
+          <form id="articleCommentForm" class="comment-input-box">
+            <input type="text" id="commentTextInput" class="comment-text-input" placeholder="Join the discussion... Press enter or post">
+            <button type="submit" class="btn btn-primary btn-sm" style="border-radius:var(--radius-full);">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+
+          <div class="comments-list" id="articleCommentsList">
+            <!-- Rendered comments -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       SUBMIT NEWS MODAL (AUTHENTICATED)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="submitNewsModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeSubmitModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="form-header">
+        <span class="hero-badge-tag"><i class="fa-solid fa-pen-fancy"></i> Community Press</span>
+        <h3>Submit a News Story or Report</h3>
+        <p>Broadcast updates to Chuka University students, local businesses, and town residents.</p>
+      </div>
+
+      <form id="submitNewsForm">
+        <div class="form-body">
+
+          <!-- Headline -->
+          <div class="form-group">
+            <label class="form-label" for="newsHeadlineInput">Headline *</label>
+            <input type="text" id="newsHeadlineInput" class="form-control" placeholder="e.g. Chuka Uni Extends Smart Card Registration or Ndagani Water Maintenance" required minlength="10">
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label" for="newsCategorySelect">Category *</label>
+            <select id="newsCategorySelect" class="form-control" required>
+              <option value="campus">Campus & University Notices</option>
+              <option value="education">Education & Revision</option>
+              <option value="community">Community & Town Announcements</option>
+              <option value="business">Business & Commercial</option>
+              <option value="sports">Sports & Athletics</option>
+              <option value="culture">Culture, Arts & Entertainment</option>
+              <option value="lostfound">Lost & Found Bulletins</option>
+            </select>
+          </div>
+
+          <!-- Article Body (Min 100 Characters) -->
+          <div class="form-group">
+            <label class="form-label" for="newsBodyInput">
+              <span>Full Report Body *</span>
+              <span class="char-counter" id="bodyCharCounter">0 / 100 min chars</span>
+            </label>
+            <textarea id="newsBodyInput" class="form-control" placeholder="Provide complete facts: who, what, when, where, and contact information. Minimum 100 characters required for community journalism." required minlength="100"></textarea>
+          </div>
+
+          <!-- Source URL -->
+          <div class="form-group">
+            <label class="form-label" for="newsSourceUrl">Source Reference / Link (Optional)</label>
+            <input type="url" id="newsSourceUrl" class="form-control" placeholder="https://chuka.ac.ke/notices/... or official link">
+          </div>
+
+          <!-- Cover Image Upload -->
+          <div class="form-group">
+            <label class="form-label">Article Cover Photo (Optional)</label>
+            <div class="cover-upload-box" id="newsUploadBox">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--accent-cyan); margin-bottom: 6px;"></i>
+              <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">Click to upload cover photo</div>
+              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 3px;">PNG, JPG up to 5MB</div>
+              <input type="file" id="newsFileInput" accept="image/*" style="display: none;">
+              <img id="newsPreviewImg" class="cover-preview-img" alt="Preview">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 8px;">
+            <i class="fa-solid fa-paper-plane"></i> Submit News Article
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let activeCategory = 'all';
+      let searchQuery = '';
+      let activeArticleId = null;
+      let newsCoverBase64 = null;
+
+      // 1. Session Setup
+      const currentUser = getCurrentUser();
+      updateAuthUI(currentUser);
+
+      const isModeratorOrAdmin = currentUser && (currentUser.account_role === 'admin' || currentUser.account_role === 'moderator');
+
+      // 2. Initial Render
+      renderNews();
+      renderSidebarStats();
+
+      // 3. Search Bar listener
+      const globalSearch = document.getElementById('globalNavSearch');
+      if (globalSearch) {
+        globalSearch.addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          renderNews();
+        });
+      }
+
+      // 4. Category Filter Tabs
+      const catPills = document.querySelectorAll('.cat-pill');
+      catPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          catPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          activeCategory = pill.getAttribute('data-category');
+          syncSidebarCategory(activeCategory);
+          renderNews();
+        });
+      });
+
+      // 5. Submit News Triggers
+      function triggerSubmitNews() {
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to submit a news report.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 900);
+          return;
+        }
+        openSubmitModal();
+      }
+
+      document.getElementById('btnOpenSubmitNews')?.addEventListener('click', triggerSubmitNews);
+      document.getElementById('btnSidebarSubmitNews')?.addEventListener('click', triggerSubmitNews);
+      document.getElementById('mobileCreateNewsBtn')?.addEventListener('click', triggerSubmitNews);
+
+      // Character counter for textarea
+      const bodyInput = document.getElementById('newsBodyInput');
+      const counterSpan = document.getElementById('bodyCharCounter');
+      if (bodyInput && counterSpan) {
+        bodyInput.addEventListener('input', () => {
+          const count = bodyInput.value.length;
+          counterSpan.textContent = `${count} / 100 min chars`;
+          counterSpan.className = count >= 100 ? 'char-counter valid' : 'char-counter';
+        });
+      }
+
+      // Cover upload
+      const uploadBox = document.getElementById('newsUploadBox');
+      const fileInput = document.getElementById('newsFileInput');
+      const previewImg = document.getElementById('newsPreviewImg');
+
+      if (uploadBox && fileInput) {
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              newsCoverBase64 = evt.target.result;
+              if (previewImg) {
+                previewImg.src = newsCoverBase64;
+                previewImg.style.display = 'block';
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // 6. Submit News Form handler
+      const submitForm = document.getElementById('submitNewsForm');
+      if (submitForm) {
+        submitForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const user = getCurrentUser();
+          if (!user) {
+            showToast('Please log in to submit news.');
+            window.location.href = 'login.html';
+            return;
+          }
+
+          const headline = document.getElementById('newsHeadlineInput').value.trim();
+          const category = document.getElementById('newsCategorySelect').value;
+          const body = document.getElementById('newsBodyInput').value.trim();
+          const source_url = document.getElementById('newsSourceUrl').value.trim();
+
+          if (!headline || !body) {
+            showToast('Headline and article body are required.');
+            return;
+          }
+          if (body.length < 100) {
+            showToast('Article body must be at least 100 characters.');
+            return;
+          }
+
+          // If user is admin/moderator, auto-publish, otherwise pending
+          const status = isModeratorOrAdmin ? 'published' : 'pending';
+
+          NexovantaDB.News.create({
+            author_username: user.username,
+            author_id: user.id,
+            headline,
+            body,
+            category,
+            source_url,
+            cover_image_url: newsCoverBase64,
+            status
+          });
+
+          if (status === 'published') {
+            showToast('News published immediately! 📰');
+          } else {
+            showToast('News submitted! Awaiting moderator review. ⏳');
+          }
+
+          closeSubmitModal();
+          submitForm.reset();
+          if (previewImg) previewImg.style.display = 'none';
+          newsCoverBase64 = null;
+          renderNews();
+          renderSidebarStats();
+        });
+      }
+
+      // 7. Close Modals
+      document.getElementById('closeSubmitModalBtn')?.addEventListener('click', closeSubmitModal);
+      document.getElementById('closeDetailModalBtn')?.addEventListener('click', closeDetailModal);
+      document.getElementById('submitNewsModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'submitNewsModal') closeSubmitModal();
+      });
+      document.getElementById('articleDetailModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'articleDetailModal') closeDetailModal();
+      });
+
+      // 8. Like Button on Article Detail
+      document.getElementById('btnArticleLike')?.addEventListener('click', function() {
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to like this story.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 900);
+          return;
+        }
+        if (activeArticleId) {
+          const res = NexovantaDB.Reactions.toggle(activeArticleId, user.id);
+          const hasLiked = NexovantaDB.Reactions.hasReacted(activeArticleId, user.id);
+          this.className = hasLiked ? 'btn-engage liked' : 'btn-engage';
+          this.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span id="articleLikesCount">${res.count}</span> Likes`;
+          showToast(hasLiked ? 'Article upvoted! ❤️' : 'Like removed');
+        }
+      });
+
+      // 9. Share Button
+      document.getElementById('btnArticleShare')?.addEventListener('click', () => {
+        const headline = document.getElementById('detailModalHeadline').textContent;
+        const shareData = {
+          title: headline,
+          text: `Read this news bulletin on Nexovanta Chuka Community!`,
+          url: window.location.href
+        };
+        if (navigator.share) {
+          navigator.share(shareData).catch(() => {});
+        } else {
+          navigator.clipboard?.writeText(window.location.href);
+          showToast('Article link copied to clipboard! 🔗');
+        }
+      });
+
+      // 10. Report Button
+      document.getElementById('btnArticleReport')?.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to report content.');
+          return;
+        }
+        if (activeArticleId) {
+          NexovantaDB.Reports.create({
+            reporter_id: user.id,
+            reporter_username: user.username,
+            content_type: 'news',
+            content_id: activeArticleId,
+            reason: 'Inaccuracy / Guidelines violation',
+            details: 'Reported by user from News page'
+          });
+          showToast('Report received. Platform moderators will review this notice. 🛡️');
+        }
+      });
+
+      // 11. Comment Form on Article
+      const commentForm = document.getElementById('articleCommentForm');
+      if (commentForm) {
+        commentForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const user = getCurrentUser();
+          if (!user) {
+            showToast('Please log in to post a comment.');
+            setTimeout(() => { window.location.href = 'login.html'; }, 900);
+            return;
+          }
+          const commentInput = document.getElementById('commentTextInput');
+          const content = commentInput.value.trim();
+          if (!content || !activeArticleId) return;
+
+          NexovantaDB.Comments.create({
+            post_id: activeArticleId,
+            author_username: user.username,
+            author_id: user.id,
+            content
+          });
+
+          commentInput.value = '';
+          renderArticleComments(activeArticleId);
+          showToast('Comment posted! 💬');
+        });
+      }
+
+      // 12. Moderator Approval & Rejection buttons
+      document.getElementById('btnModApprove')?.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (activeArticleId && user) {
+          NexovantaDB.News.moderate(activeArticleId, 'published', user.username, 'Approved via News Review Panel');
+          showToast('Article published to community! ✅');
+          openDetailModal(activeArticleId);
+          renderNews();
+          renderSidebarStats();
+        }
+      });
+
+      document.getElementById('btnModReject')?.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (activeArticleId && user) {
+          NexovantaDB.News.moderate(activeArticleId, 'rejected', user.username, 'Rejected via News Review Panel');
+          showToast('Article rejected.');
+          closeDetailModal();
+          renderNews();
+          renderSidebarStats();
+        }
+      });
+
+      // Notifications Toggle
+      const notifBell = document.getElementById('notifBellBtn');
+      const notifMenu = document.getElementById('notifDropdownMenu');
+      if (notifBell && notifMenu) {
+        notifBell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('userDropdownMenu')?.classList.remove('active');
+          notifMenu.classList.toggle('active');
+          renderNotifications();
+        });
+      }
+
+      const userTrigger = document.getElementById('userMenuTrigger');
+      const userMenu = document.getElementById('userDropdownMenu');
+      if (userTrigger && userMenu) {
+        userTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('notifDropdownMenu')?.classList.remove('active');
+          userMenu.classList.toggle('active');
+        });
+      }
+
+      document.addEventListener('click', () => {
+        notifMenu?.classList.remove('active');
+        userMenu?.classList.remove('active');
+      });
+
+      document.getElementById('markAllReadBtn')?.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (user) {
+          NexovantaDB.Notifications.markAllRead(user.id);
+          renderNotifications();
+          showToast('Notifications marked as read.');
+        }
+      });
+
+      document.getElementById('navLogoutBtn')?.addEventListener('click', () => {
+        NexovantaAuth.signOut().then(() => window.location.replace('login.html'));
+      });
+
+      // Render News Grid & Featured Article
+      function renderNews() {
+        const user = getCurrentUser();
+        const canViewPending = isModeratorOrAdmin;
+
+        // Retrieve all articles or published depending on privileges
+        const allArticles = NexovantaDB.News.getAll(true);
+
+        // Filter visible articles: published OR owned by user OR user is mod/admin
+        let visible = allArticles.filter(art => {
+          if (art.status === 'published') return true;
+          if (user && art.author_id === user.id) return true;
+          if (canViewPending) return true;
+          return false;
+        });
+
+        // Filter by category
+        if (activeCategory !== 'all') {
+          visible = visible.filter(a => a.category === activeCategory);
+        }
+
+        // Filter by search query
+        if (searchQuery) {
+          visible = visible.filter(a =>
+            (a.headline || '').toLowerCase().includes(searchQuery) ||
+            (a.body || '').toLowerCase().includes(searchQuery) ||
+            (a.author_username || '').toLowerCase().includes(searchQuery) ||
+            (a.category || '').toLowerCase().includes(searchQuery)
+          );
+        }
+
+        const countText = document.getElementById('articlesCountText');
+        if (countText) {
+          countText.textContent = `Showing ${visible.length} article${visible.length === 1 ? '' : 's'}`;
+        }
+
+        const featuredContainer = document.getElementById('featuredArticleContainer');
+        const gridContainer = document.getElementById('newsCardsGrid');
+
+        if (visible.length === 0) {
+          featuredContainer.innerHTML = '';
+          gridContainer.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:var(--bg-card); border-radius:var(--radius-xl); border:1px dashed var(--border-light); color:var(--text-muted);">
+              <i class="fa-solid fa-newspaper" style="font-size:3rem; color:var(--text-dim); margin-bottom:14px;"></i>
+              <h3>No Articles in This Category</h3>
+              <p>Be the first to break the news in this section!</p>
+              <button class="btn btn-primary btn-sm" onclick="triggerSubmitNews()" style="margin-top:14px;">
+                <i class="fa-solid fa-pen-nib"></i> Submit Report
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // Top article becomes Featured
+        const featured = visible[0];
+        const standardList = visible.slice(1);
+
+        // Render Featured Card
+        const featCatIcons = {
+          campus: 'fa-graduation-cap', education: 'fa-book-bookmark', community: 'fa-people-roof',
+          business: 'fa-store', sports: 'fa-futbol', culture: 'fa-masks-theater', lostfound: 'fa-magnifying-glass-location'
+        };
+        const featIcon = featCatIcons[featured.category] || 'fa-newspaper';
+
+        const featCoverHtml = featured.cover_image_url
+          ? `<img src="${featured.cover_image_url}" class="featured-cover-img" alt="${escapeHtml(featured.headline)}">`
+          : `<div class="featured-placeholder-cover"><i class="fa-solid ${featIcon}"></i></div>`;
+
+        featuredContainer.innerHTML = `
+          <div class="featured-article-card" onclick="openDetailModal('${featured.id}')">
+            <div class="featured-cover-box">
+              ${featCoverHtml}
+              <div class="featured-tag-badge">
+                <i class="fa-solid fa-star"></i> Featured Community Story
+              </div>
+              <span class="card-category-badge ${featured.category}" style="top:16px; right:16px; left:auto;">
+                ${featured.category}
+              </span>
+            </div>
+            <div class="featured-body">
+              <div class="featured-meta-row">
+                <span>By <a href="profile.html?user=${encodeURIComponent(featured.author_username)}" class="author-handle-link" onclick="event.stopPropagation()">@${escapeHtml(featured.author_username)}</a></span>
+                <span>•</span>
+                <span><i class="fa-regular fa-clock"></i> ${NexovantaDB.timeAgo(featured.created_at)}</span>
+                ${featured.status === 'pending' ? `<span class="status-badge pending" style="position:static;">Pending Review</span>` : ''}
+              </div>
+
+              <h2 class="featured-title">${escapeHtml(featured.headline)}</h2>
+
+              <p class="featured-excerpt">${escapeHtml(featured.body)}</p>
+
+              <div class="featured-footer">
+                <div style="font-size:0.82rem; color:var(--accent-cyan); font-weight:700;">
+                  <i class="fa-solid fa-comments"></i> ${NexovantaDB.Comments.countByPost(featured.id)} Comments
+                  <span style="margin: 0 6px;">•</span>
+                  <i class="fa-regular fa-heart"></i> ${NexovantaDB.Reactions.countByPost(featured.id)} Likes
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openDetailModal('${featured.id}')">
+                  Read Full Story <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Render Standard Cards Grid
+        if (standardList.length === 0) {
+          gridContainer.innerHTML = '';
+          return;
+        }
+
+        gridContainer.innerHTML = standardList.map(art => {
+          const cardIcon = featCatIcons[art.category] || 'fa-newspaper';
+          const coverHtml = art.cover_image_url
+            ? `<img src="${art.cover_image_url}" class="news-card-img" alt="${escapeHtml(art.headline)}" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'news-placeholder ${art.category}\\'><i class=\\'fa-solid ${cardIcon}\\'></i></div>';">`
+            : `<div class="news-placeholder ${art.category}"><i class="fa-solid ${cardIcon}"></i></div>`;
+
+          const statusBadgeHtml = (art.status === 'pending' || isModeratorOrAdmin)
+            ? `<span class="status-badge ${art.status}">${art.status === 'published' ? 'Published' : 'Pending'}</span>`
+            : '';
+
+          return `
+            <div class="news-card" onclick="openDetailModal('${art.id}')">
+              <div class="news-card-cover">
+                ${coverHtml}
+                <span class="card-category-badge ${art.category}">${art.category}</span>
+                ${statusBadgeHtml}
+              </div>
+
+              <div class="news-card-body">
+                <h3 class="news-card-headline" title="${escapeHtml(art.headline)}">${escapeHtml(art.headline)}</h3>
+                <p class="news-card-excerpt">${escapeHtml(art.body)}</p>
+
+                <div class="news-card-footer">
+                  <div class="author-meta">
+                    <a href="profile.html?user=${encodeURIComponent(art.author_username)}" class="author-handle-link" onclick="event.stopPropagation()">@${escapeHtml(art.author_username)}</a>
+                    <span>•</span>
+                    <span>${NexovantaDB.timeAgo(art.created_at)}</span>
+                  </div>
+
+                  <button class="btn-read-more" onclick="event.stopPropagation(); openDetailModal('${art.id}')">
+                    Read <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Open Article Detail Modal
+      window.openDetailModal = function(articleId) {
+        activeArticleId = articleId;
+        const art = NexovantaDB.News.getById(articleId);
+        if (!art) return;
+
+        const modal = document.getElementById('articleDetailModal');
+        const user = getCurrentUser();
+
+        // Cover
+        const coverBox = document.getElementById('detailModalCover');
+        const featCatIcons = { campus: 'fa-graduation-cap', education: 'fa-book-bookmark', community: 'fa-people-roof', business: 'fa-store', sports: 'fa-futbol', culture: 'fa-masks-theater', lostfound: 'fa-magnifying-glass-location' };
+        const cardIcon = featCatIcons[art.category] || 'fa-newspaper';
+
+        if (art.cover_image_url) {
+          coverBox.innerHTML = `<img src="${art.cover_image_url}" class="detail-cover-img" alt="${escapeHtml(art.headline)}">`;
+        } else {
+          coverBox.innerHTML = `<div class="news-placeholder ${art.category}"><i class="fa-solid ${cardIcon}"></i></div>`;
+        }
+
+        // Category & Status
+        const catBadge = document.getElementById('detailModalCategory');
+        catBadge.className = `card-category-badge ${art.category}`;
+        catBadge.textContent = art.category.toUpperCase();
+
+        const statusBadge = document.getElementById('detailModalStatus');
+        statusBadge.className = `status-badge ${art.status}`;
+        statusBadge.textContent = art.status === 'published' ? 'Published' : 'Pending Review';
+
+        document.getElementById('detailModalHeadline').textContent = art.headline;
+
+        // Author details
+        const authorUser = NexovantaDB.Users.getByUsername(art.author_username);
+        const avatarBox = document.getElementById('detailModalAvatar');
+        avatarBox.innerHTML = NexovantaDB.getAvatarHtml(art.author_username, authorUser?.avatar_url, 40);
+
+        document.getElementById('detailModalAuthorName').textContent = authorUser?.full_name || art.author_username;
+        const authorHandle = document.getElementById('detailModalAuthorHandle');
+        authorHandle.textContent = `@${art.author_username}`;
+        authorHandle.href = `profile.html?user=${encodeURIComponent(art.author_username)}`;
+
+        document.getElementById('detailModalDate').innerHTML = `<i class="fa-regular fa-clock"></i> ${NexovantaDB.timeAgo(art.created_at)}`;
+        document.getElementById('detailModalBody').textContent = art.body;
+
+        // Source URL
+        const sourceBox = document.getElementById('detailModalSourceBox');
+        const sourceLink = document.getElementById('detailModalSourceLink');
+        if (art.source_url) {
+          sourceLink.href = art.source_url;
+          sourceLink.textContent = art.source_url;
+          sourceBox.style.display = 'block';
+        } else {
+          sourceBox.style.display = 'none';
+        }
+
+        // Moderator Panel Visibility
+        const modStrip = document.getElementById('moderatorActionStrip');
+        if (isModeratorOrAdmin && art.status === 'pending') {
+          modStrip.style.display = 'flex';
+        } else {
+          modStrip.style.display = 'none';
+        }
+
+        // Reactions
+        const likeCount = NexovantaDB.Reactions.countByPost(art.id);
+        const hasLiked = user ? NexovantaDB.Reactions.hasReacted(art.id, user.id) : false;
+        const likeBtn = document.getElementById('btnArticleLike');
+        likeBtn.className = hasLiked ? 'btn-engage liked' : 'btn-engage';
+        likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span id="articleLikesCount">${likeCount}</span> Likes`;
+
+        // Comments
+        renderArticleComments(art.id);
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+
+      function renderArticleComments(articleId) {
+        const comments = NexovantaDB.Comments.getByPost(articleId);
+        const list = document.getElementById('articleCommentsList');
+        const countSpan = document.getElementById('articleCommentCount');
+        if (countSpan) countSpan.textContent = comments.length;
+
+        if (!list) return;
+        if (comments.length === 0) {
+          list.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-dim); font-size:0.85rem;">No comments yet. Start the conversation!</div>`;
+          return;
+        }
+
+        list.innerHTML = comments.map(c => {
+          const u = NexovantaDB.Users.getByUsername(c.author_username);
+          return `
+            <div class="comment-card">
+              <div>${NexovantaDB.getAvatarHtml(c.author_username, u?.avatar_url, 32)}</div>
+              <div class="comment-meta">
+                <div>
+                  <span class="comment-author-name">@${escapeHtml(c.author_username)}</span>
+                  <span class="comment-time">${NexovantaDB.timeAgo(c.created_at)}</span>
+                </div>
+                <div class="comment-content">${escapeHtml(c.content)}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function closeDetailModal() {
+        document.getElementById('articleDetailModal')?.classList.remove('active');
+        document.body.style.overflow = '';
+        activeArticleId = null;
+      }
+
+      function openSubmitModal() {
+        document.getElementById('submitNewsModal')?.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeSubmitModal() {
+        document.getElementById('submitNewsModal')?.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Sidebar Statistics & Breaking News list
+      function renderSidebarStats() {
+        const allArticles = NexovantaDB.News.getAll();
+
+        // 1. Breaking News Widget
+        const breakingBox = document.getElementById('breakingNewsList');
+        if (breakingBox) {
+          const breakingItems = allArticles.slice(0, 4);
+          if (breakingItems.length === 0) {
+            breakingBox.innerHTML = '<div style="color:var(--text-dim); font-size:0.8rem;">No bulletins available.</div>';
+          } else {
+            breakingBox.innerHTML = breakingItems.map(b => `
+              <div class="breaking-item" onclick="openDetailModal('${b.id}')">
+                <div class="breaking-top">
+                  <span class="pulse-dot-red"></span>
+                  <span style="color:var(--accent-cyan); text-transform:uppercase; font-weight:700;">${b.category}</span>
+                  <span style="color:var(--text-dim);">• ${NexovantaDB.timeAgo(b.created_at)}</span>
+                </div>
+                <div class="breaking-headline">${escapeHtml(b.headline)}</div>
+              </div>
+            `).join('');
+          }
+        }
+
+        // 2. Categories with live article counts
+        const catList = document.getElementById('sidebarCategoryList');
+        if (catList) {
+          const categories = [
+            { id: 'all', label: 'All Categories', icon: 'fa-layer-group' },
+            { id: 'campus', label: 'Campus & Academic', icon: 'fa-graduation-cap' },
+            { id: 'education', label: 'Education & Revision', icon: 'fa-book-bookmark' },
+            { id: 'community', label: 'Community & Town', icon: 'fa-people-roof' },
+            { id: 'business', label: 'Business & Trade', icon: 'fa-store' },
+            { id: 'sports', label: 'Sports & Matches', icon: 'fa-futbol' },
+            { id: 'culture', label: 'Culture & Entertainment', icon: 'fa-masks-theater' },
+            { id: 'lostfound', label: 'Lost & Found', icon: 'fa-magnifying-glass-location' },
+          ];
+
+          catList.innerHTML = categories.map(cat => {
+            const count = cat.id === 'all'
+              ? allArticles.length
+              : allArticles.filter(a => a.category === cat.id).length;
+
+            return `
+              <li class="sidebar-cat-item ${activeCategory === cat.id ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
+                <span><i class="fa-solid ${cat.icon}" style="width:18px; margin-right:4px;"></i> ${cat.label}</span>
+                <span class="sidebar-cat-count">${count}</span>
+              </li>
+            `;
+          }).join('');
+        }
+      }
+
+      window.selectCategory = function(catId) {
+        activeCategory = catId;
+        catPills.forEach(p => {
+          p.classList.toggle('active', p.getAttribute('data-category') === catId);
+        });
+        syncSidebarCategory(catId);
+        renderNews();
+      };
+
+      function syncSidebarCategory(catId) {
+        const items = document.querySelectorAll('.sidebar-cat-item');
+        items.forEach(it => {
+          it.classList.toggle('active', it.getAttribute('onclick')?.includes(`'${catId}'`));
+        });
+      }
+
+      // Notifications helper
+      function renderNotifications() {
+        const user = getCurrentUser();
+        const container = document.getElementById('notifListContainer');
+        const countBadge = document.getElementById('navNotifCount');
+        if (!container) return;
+
+        if (!user) {
+          container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">Log in to see notifications</div>';
+          if (countBadge) countBadge.style.display = 'none';
+          return;
+        }
+
+        const unreadCount = NexovantaDB.Notifications.getUnreadCount(user.id);
+        if (countBadge) {
+          if (unreadCount > 0) {
+            countBadge.textContent = unreadCount;
+            countBadge.style.display = 'block';
+          } else {
+            countBadge.style.display = 'none';
+          }
+        }
+
+        const notifs = NexovantaDB.Notifications.getByUser(user.id);
+        if (notifs.length === 0) {
+          container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No notifications yet.</div>';
+          return;
+        }
+
+        container.innerHTML = notifs.map(n => `
+          <div class="notif-item ${n.read_at ? '' : 'unread'}">
+            <i class="fa-solid fa-bell" style="color:var(--accent-cyan);margin-top:2px;"></i>
+            <div>
+              <div style="color:#fff;">${escapeHtml(n.message)}</div>
+              <div style="font-size:0.7rem;color:var(--text-dim);margin-top:3px;">${NexovantaDB.timeAgo(n.created_at)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Render Auth UI in Topbar
+      function updateAuthUI(user) {
+        const guestBox = document.getElementById('guestActions');
+        const userMenu = document.getElementById('userMenuWrapper');
+        const notifBadge = document.getElementById('navNotifCount');
+
+        if (user) {
+          if (guestBox) guestBox.style.display = 'none';
+          if (userMenu) userMenu.style.display = 'block';
+
+          const handle = document.getElementById('navUserHandle');
+          if (handle) handle.textContent = `@${user.username}`;
+
+          const navAvatarWrap = document.getElementById('navUserAvatarWrap');
+          if (navAvatarWrap) navAvatarWrap.innerHTML = NexovantaDB.getAvatarHtml(user.username, user.avatar_url, 30);
+
+          const dropAvatar = document.getElementById('dropdownAvatar');
+          if (dropAvatar) dropAvatar.innerHTML = NexovantaDB.getAvatarHtml(user.username, user.avatar_url, 44);
+
+          const dropName = document.getElementById('dropdownFullName');
+          if (dropName) dropName.textContent = user.full_name || user.username;
+
+          const dropHandle = document.getElementById('dropdownHandle');
+          if (dropHandle) dropHandle.textContent = `@${user.username}`;
+
+          const dropRole = document.getElementById('dropdownRoleTag');
+          if (dropRole) dropRole.textContent = user.roleTitle || (user.role === 'student' ? 'Student 🎓' : user.role === 'business' ? 'Business 💼' : 'Resident 🏘️');
+
+          const profileLink = document.getElementById('navProfileLink');
+          if (profileLink) profileLink.href = `profile.html?user=${encodeURIComponent(user.username)}`;
+
+          const unread = NexovantaDB.Notifications.getUnreadCount(user.id);
+          if (notifBadge && unread > 0) {
+            notifBadge.textContent = unread;
+            notifBadge.style.display = 'block';
+          }
+        } else {
+          if (guestBox) guestBox.style.display = 'flex';
+          if (userMenu) userMenu.style.display = 'none';
+          if (notifBadge) notifBadge.style.display = 'none';
+        }
+      }
+    });
+
+    // Global session helper with auto-recovery
+    function getCurrentUser() {
+      let session = NexovantaDB.Session.get();
+      if (session && !session.id && session.role) {
+        const user = NexovantaDB.Users.getAll().find(u => u.role === session.role) || NexovantaDB.Users.getAll()[0];
+        if (user) {
+          session = NexovantaDB.Session.set(user);
+        }
+      }
+      return session;
+    }
+
+    // Helper: Toast Notification
+    let toastTimer;
+    function showToast(message) {
+      let toast = document.getElementById('nexovantaToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'nexovantaToast';
+        toast.className = 'toast-notice';
+        toast.innerHTML = `
+          <i class="fa-solid fa-circle-check toast-icon"></i>
+          <span class="toast-text" id="toastMessage"></span>
+        `;
+        document.body.appendChild(toast);
+      }
+      const textElem = document.getElementById('toastMessage');
+      if (textElem) textElem.textContent = message;
+
+      clearTimeout(toastTimer);
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

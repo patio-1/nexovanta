@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexovanta | Chuka Community Platform</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 CDN for Crisp Vector Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Nexovanta Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Supabase Auth profile support for the public landing page -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+</head>
+<body>
+
+  <!-- =================================================================
+       VIDEO BACKGROUND (Muted, Looped, Autoplay with Overlay)
+       ================================================================= -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <!-- =================================================================
+       NAVIGATION BAR
+       ================================================================= -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-wrap">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="brand-logo-img">
+        <div class="brand-text-block">
+          <span class="brand-name">NEXOVANTA</span>
+          <span class="brand-badge"><i class="fa-solid fa-location-dot"></i> CHUKA COMMUNITY</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links to 5 Pillars -->
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#community-feed" class="nav-link active"><i class="fa-solid fa-users"></i> Community</a></li>
+          <li><a href="feed.html" class="nav-link"><i class="fa-solid fa-rss"></i> Social Feed</a></li>
+          <li><a href="marketplace.html" class="nav-link"><i class="fa-solid fa-store"></i> Marketplace</a></li>
+          <li><a href="news.html" class="nav-link"><i class="fa-solid fa-newspaper"></i> News</a></li>
+          <li><a href="events.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> Events</a></li>
+
+        </ul>
+      </nav>
+
+      <!-- Nav Action CTAs & User Auth Status -->
+      <div class="nav-actions">
+        <!-- Notification Bell (logged in) -->
+        <div id="navNotifWrap" style="display:none;position:relative;">
+          <button id="navNotifBtn" class="btn btn-outline btn-sm" style="position:relative;padding:7px 12px;" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span id="navNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:0.6rem;font-weight:800;min-width:16px;height:16px;border-radius:9999px;display:flex;align-items:center;justify-content:center;padding:0 3px;">0</span>
+          </button>
+        </div>
+
+        <!-- Logged In User Preview Badge -->
+        <div id="navUserBadge" class="user-badge-nav">
+          <div id="navUserAvatar" class="user-avatar-mini">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div>
+            <div id="navUserName" style="font-size: 0.8rem; font-weight: 700; color: #fff;">@chukamember</div>
+            <div id="navUserRole" style="font-size: 0.68rem; color: var(--accent-cyan);">Student 🎓</div>
+          </div>
+          <a href="feed.html" class="btn btn-sm btn-primary" style="padding: 4px 10px; margin-left: 6px; font-size: 0.72rem;"><i class="fa-solid fa-rss"></i> Feed</a>
+          <button onclick="logoutNexovanta()" class="btn btn-sm btn-outline" style="padding: 4px 10px; margin-left: 4px; font-size: 0.72rem;">Logout</button>
+        </div>
+
+        <button id="navLoginBtn" class="btn btn-outline btn-sm btn-open-login">
+          <i class="fa-solid fa-right-to-bracket"></i> Log In
+        </button>
+        <a href="login.html" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-user-plus"></i> Join Chuka
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================
+       HERO SECTION
+       ================================================================= -->
+  <section class="hero-section">
+    <div class="container hero-grid">
+      <!-- Left Column: High-Impact Mission & Copy -->
+      <div class="hero-content">
+        <div class="hero-badge-pill">
+          <span class="pulse-dot"></span>
+          <span>Connecting Chuka University & Ndagani Town</span>
+        </div>
+
+        <h1 class="hero-title">
+          Your Community.<br>
+          <span class="gradient-text">Our Platform.</span>
+        </h1>
+
+        <p class="hero-desc">
+          Nexovanta brings together Chuka University students, local business owners, and town residents into one unified digital ecosystem. Buy, sell, discover hostels, share campus updates, and collaborate in real-time.
+        </p>
+
+        <div class="hero-cta-group">
+          <button class="btn btn-primary btn-lg btn-open-register">
+            <i class="fa-solid fa-rocket"></i> Get Started Free
+          </button>
+          <a href="#five-pillars" class="btn btn-outline btn-lg">
+            <i class="fa-solid fa-layer-group"></i> Explore 5 Pillars
+          </a>
+        </div>
+
+        <!-- Community Live Numbers -->
+        <div class="stats-strip">
+          <div class="stat-item">
+            <span class="stat-number">15,000+</span>
+            <span class="stat-label">Students Connected</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">480+</span>
+            <span class="stat-label">Verified Chuka Shops</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">1,200+</span>
+            <span class="stat-label">Hostels & Services</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Role Selection Hub -->
+      <div class="hero-role-hub">
+        <div class="category-hub-card">
+          <div class="hub-card-header">
+            <h3>Who Are You in Chuka?</h3>
+            <p>Select your category to access personalized tools, feeds & services:</p>
+          </div>
+
+          <div class="category-choice-list">
+            <!-- 1. Students -->
+            <div class="category-choice-item student-item btn-open-login" data-role="student">
+              <div class="cat-icon-box">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div class="cat-text-info">
+                <h4>Chuka University Student</h4>
+                <p>Hostel finder, revision notes, secondhand trade, campus news</p>
+              </div>
+              <i class="fa-solid fa-arrow-right cat-arrow"></i>
+            </div>
+
+            <!-- 2. Business People -->
+            <div class="category-choice-item business-item btn-open-login" data-role="business">
+              <div class="cat-icon-box">
+                <i class="fa-solid fa-store"></i>
+              </div>
+              <div class="cat-text-info">
+                <h4>Business & Merchant</h4>
+                <p>Digital shopfront, promote products, reach campus buyers</p>
+              </div>
+              <i class="fa-solid fa-arrow-right cat-arrow"></i>
+            </div>
+
+            <!-- 3. Chuka Residents -->
+            <div class="category-choice-item resident-item btn-open-login" data-role="resident">
+              <div class="cat-icon-box">
+                <i class="fa-solid fa-house-chimney"></i>
+              </div>
+              <div class="cat-text-info">
+                <h4>Chuka Resident & Landlord</h4>
+                <p>Rental listings, town announcements, find local artisans</p>
+              </div>
+              <i class="fa-solid fa-arrow-right cat-arrow"></i>
+            </div>
+          </div>
+
+          <div style="text-align: center;">
+            <a href="login.html" style="font-size: 0.85rem; color: var(--accent-cyan); text-decoration: none; font-weight: 600;">
+              Or open the dedicated Category Login Page <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       ROLE FILTER BAR (Quick Filtering)
+       ================================================================= -->
+  <section class="category-filter-section">
+    <div class="container">
+      <div class="filter-bar-wrapper">
+        <button class="filter-tab active" data-role="all">
+          <i class="fa-solid fa-globe"></i> Entire Community
+        </button>
+        <button class="filter-tab student-tab" data-role="student">
+          <i class="fa-solid fa-graduation-cap"></i> 1. Chuka Students
+        </button>
+        <button class="filter-tab business-tab" data-role="business">
+          <i class="fa-solid fa-store"></i> 2. Business People
+        </button>
+        <button class="filter-tab resident-tab" data-role="resident">
+          <i class="fa-solid fa-house-chimney"></i> 3. Chuka Residents
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       THE FIVE CONNECTED PILLARS (Directly matching WhatsApp Image)
+       ================================================================= -->
+  <section id="five-pillars" class="pillars-section">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-tag"><i class="fa-solid fa-cubes"></i> Core Architecture</span>
+        <h2 class="section-title">Five Connected Pillars. <span class="gradient-text">One Chuka Community.</span></h2>
+        <p class="section-subtitle">
+          "They should feel like different parts of the same community, rather than five unrelated websites."
+        </p>
+      </div>
+
+      <!-- Pillar Selector Tabs -->
+      <div class="pillars-tabs-nav">
+        <button class="pillar-nav-btn active" data-pillar="community">
+          <i class="fa-solid fa-users"></i> 1. Chuka Community
+          <span class="pillar-badge-small">Core feature</span>
+        </button>
+        <button class="pillar-nav-btn" data-pillar="marketplace">
+          <i class="fa-solid fa-bag-shopping"></i> 2. Chuka Marketplace
+        </button>
+        <button class="pillar-nav-btn" data-pillar="news">
+          <i class="fa-solid fa-newspaper"></i> 3. Chuka News & Updates
+        </button>
+        <button class="pillar-nav-btn" data-pillar="connect">
+          <i class="fa-solid fa-network-wired"></i> 4. Chuka Connect
+        </button>
+        <button class="pillar-nav-btn" data-pillar="messages">
+          <i class="fa-solid fa-comments"></i> 5. Chuka Messages
+        </button>
+      </div>
+
+      <!-- ==========================================
+           PILLAR 1: CHUKA COMMUNITY (CORE FEATURE)
+           ========================================== -->
+      <div class="pillar-showcase-card active" id="pillar-community">
+        <div class="pillar-layout-grid">
+          <div class="pillar-info-col">
+            <span class="pillar-core-badge"><i class="fa-solid fa-star"></i> Core Feature</span>
+            <h3>1. Chuka Community</h3>
+            <p class="pillar-desc-lead">
+              A social feed where people publish posts, share photos, comment, react, follow others, and discuss events happening around Chuka.
+            </p>
+            <ul class="pillar-feature-bullets">
+              <li><i class="fa-solid fa-circle-check"></i> Interactive social wall with campus trends & Ndagani lifestyle</li>
+              <li><i class="fa-solid fa-circle-check"></i> Multi-media uploads: graduation photos, football fixtures & local happenings</li>
+              <li><i class="fa-solid fa-circle-check"></i> Real-time reactions, upvotes, and threaded community commentary</li>
+              <li><i class="fa-solid fa-circle-check"></i> Filter discussions by Campus, Ndagani, Kangaru, or Town Centre</li>
+            </ul>
+            <button class="btn btn-primary btn-open-login" data-role="student">
+              <i class="fa-solid fa-feather-pointed"></i> Share a Post to Feed
+            </button>
+          </div>
+
+          <!-- Interactive Simulator: Live Feed -->
+          <div class="pillar-interactive-preview">
+            <div class="preview-top-bar">
+              <span class="preview-status"><span class="pulse-dot"></span> Live Community Feed</span>
+              <span style="font-size: 0.75rem; color: var(--accent-cyan);"><i class="fa-solid fa-sliders"></i> Trending</span>
+            </div>
+
+            <!-- Mock Post 1 (Student) -->
+            <div class="mock-post">
+              <div class="mock-user-row">
+                <div class="mock-avatar">BK</div>
+                <div class="mock-user-meta">
+                  <h5>Brian Kiprotich</h5>
+                  <span class="mock-role-tag tag-student">Chuka Uni • Computer Science Y3</span>
+                </div>
+              </div>
+              <p class="mock-post-body">
+                The sunset view over Mount Kenya from the New Science Complex roof terrace this evening was unreal! Good luck to everyone revising for end of semester exams next week. 📚✨
+              </p>
+              <div class="mock-post-actions">
+                <div class="mock-action-btn mock-action-like">
+                  <i class="fa-regular fa-heart"></i> <span class="like-count">84</span>
+                </div>
+                <div class="mock-action-btn mock-action-comment">
+                  <i class="fa-regular fa-comment"></i> <span>19</span>
+                </div>
+                <div class="mock-action-btn mock-action-share">
+                  <i class="fa-solid fa-share-nodes"></i> Share
+                </div>
+              </div>
+            </div>
+
+            <!-- Mock Post 2 (Local Business) -->
+            <div class="mock-post">
+              <div class="mock-user-row">
+                <div class="mock-avatar" style="background: var(--role-business); color: #fff;">NB</div>
+                <div class="mock-user-meta">
+                  <h5>Ndagani Fresh Cafe & Bakes</h5>
+                  <span class="mock-role-tag tag-business">Verified Business • Ndagani Stage</span>
+                </div>
+              </div>
+              <p class="mock-post-body">
+                Fresh warm mandazis, samosas & blended passion juice ready for all night study sessions! 10% discount for Chuka Uni students with student ID till Friday. ☕🥟
+              </p>
+              <div class="mock-post-actions">
+                <div class="mock-action-btn mock-action-like">
+                  <i class="fa-regular fa-heart"></i> <span class="like-count">42</span>
+                </div>
+                <div class="mock-action-btn mock-action-comment">
+                  <i class="fa-regular fa-comment"></i> <span>7</span>
+                </div>
+                <div class="mock-action-btn mock-action-share">
+                  <i class="fa-solid fa-share-nodes"></i> Share
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PILLAR 2: CHUKA MARKETPLACE
+           ========================================== -->
+      <div class="pillar-showcase-card" id="pillar-marketplace">
+        <div class="pillar-layout-grid">
+          <div class="pillar-info-col">
+            <span class="pillar-core-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">
+              <i class="fa-solid fa-shop"></i> Digital Commerce
+            </span>
+            <h3>2. Chuka Marketplace</h3>
+            <p class="pillar-desc-lead">
+              Students and businesses list products and services, display prices, manage stock, and connect with buyers. Each business gets its own digital shop.
+            </p>
+            <ul class="pillar-feature-bullets">
+              <li><i class="fa-solid fa-circle-check"></i> Free personal shopfronts for student sellers and Chuka town traders</li>
+              <li><i class="fa-solid fa-circle-check"></i> Direct in-app chat & WhatsApp inquiry integration</li>
+              <li><i class="fa-solid fa-circle-check"></i> Transparent pricing in KES with verified vendor badges</li>
+              <li><i class="fa-solid fa-circle-check"></i> Categories: Electronics, Revision Books, Hostels, Food, Fashion & Furniture</li>
+            </ul>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a href="marketplace.html" class="btn btn-business">
+                <i class="fa-solid fa-store"></i> Enter Virtual Marketplace ➔
+              </a>
+              <button class="btn btn-outline btn-open-login" data-role="business">
+                <i class="fa-solid fa-plus"></i> Open Digital Shop
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Simulator: Marketplace Grid -->
+          <div class="pillar-interactive-preview">
+            <div class="preview-top-bar">
+              <span class="preview-status"><i class="fa-solid fa-cart-shopping" style="color: var(--role-business);"></i> Live Listings in Chuka</span>
+              <span style="font-size: 0.75rem; color: var(--accent-teal);">Filter: Ndagani & Campus</span>
+            </div>
+
+            <div class="mock-market-grid">
+              <!-- Item 1 -->
+              <div class="mock-product-card">
+                <div class="product-img-box">
+                  <i class="fa-solid fa-laptop"></i>
+                </div>
+                <div class="product-title">HP EliteBook 840 G5 (16GB RAM)</div>
+                <div class="product-price">KES 32,500</div>
+                <div class="product-vendor">
+                  <i class="fa-solid fa-circle-check" style="color: var(--accent-teal);"></i> Ndagani Tech Point (Shop #12)
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="mock-product-card">
+                <div class="product-img-box" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+                  <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div class="product-title">Engineering Calculus & Physics Textbooks</div>
+                <div class="product-price">KES 1,200</div>
+                <div class="product-vendor">
+                  <i class="fa-solid fa-graduation-cap" style="color: var(--accent-cyan);"></i> Kelvin (Student Seller)
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="mock-product-card">
+                <div class="product-img-box" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+                  <i class="fa-solid fa-chair"></i>
+                </div>
+                <div class="product-title">Hostel Study Table + Ergonomic Chair</div>
+                <div class="product-price">KES 3,800</div>
+                <div class="product-vendor">
+                  <i class="fa-solid fa-graduation-cap" style="color: var(--accent-cyan);"></i> Sarah (Graduating Student)
+                </div>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="mock-product-card">
+                <div class="product-img-box" style="color: #06b6d4; background: rgba(6, 182, 212, 0.1);">
+                  <i class="fa-solid fa-print"></i>
+                </div>
+                <div class="product-title">Spiral Binding & Colored Printing 24/7</div>
+                <div class="product-price">KES 3 / page</div>
+                <div class="product-vendor">
+                  <i class="fa-solid fa-circle-check" style="color: var(--accent-teal);"></i> SpeedCyber Chuka Gate A
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PILLAR 3: CHUKA NEWS AND UPDATES
+           ========================================== -->
+      <div class="pillar-showcase-card" id="pillar-news">
+        <div class="pillar-layout-grid">
+          <div class="pillar-info-col">
+            <span class="pillar-core-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: rgba(99, 102, 241, 0.4);">
+              <i class="fa-solid fa-bullhorn"></i> Campus & Town Bulletins
+            </span>
+            <h3>3. Chuka News and Updates</h3>
+            <p class="pillar-desc-lead">
+              A dedicated news section for local announcements, campus updates, events, business openings, lost-and-found notices, and important community information.
+            </p>
+            <ul class="pillar-feature-bullets">
+              <li><i class="fa-solid fa-circle-check"></i> Official Chuka University notices: portal deadlines, timetables & bursaries</li>
+              <li><i class="fa-solid fa-circle-check"></i> Active Lost & Found registry (National IDs, ATM cards, room keys, phones)</li>
+              <li><i class="fa-solid fa-circle-check"></i> Tharaka Nithi county & Ndagani infrastructure announcements</li>
+              <li><i class="fa-solid fa-circle-check"></i> Cultural festivals, sports derbies, and weekend entertainment guides</li>
+            </ul>
+            <button class="btn btn-outline btn-open-login" data-role="resident">
+              <i class="fa-solid fa-magnifying-glass"></i> Browse Lost & Found
+            </button>
+          </div>
+
+          <!-- Interactive Simulator: News Feed -->
+          <div class="pillar-interactive-preview">
+            <div class="preview-top-bar">
+              <span class="preview-status"><i class="fa-solid fa-newspaper" style="color: #818cf8;"></i> Live Chuka Bulletins</span>
+              <span style="font-size: 0.75rem; color: var(--accent-cyan);">Updated 10m ago</span>
+            </div>
+
+            <!-- News 1 -->
+            <div class="mock-news-item">
+              <div class="news-icon-circle">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div class="news-content">
+                <h5>Chuka University Academic Senate Notice</h5>
+                <p>Course registration deadline extended by 3 working days for all continuing undergraduate faculties.</p>
+                <div class="news-time"><i class="fa-regular fa-clock"></i> 25 mins ago • Campus Admin</div>
+              </div>
+            </div>
+
+            <!-- News 2 -->
+            <div class="mock-news-item">
+              <div class="news-icon-circle" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <i class="fa-solid fa-id-card"></i>
+              </div>
+              <div class="news-content">
+                <h5>Lost & Found: Chuka Uni Smart Card</h5>
+                <p>Found at Library Gate entrance belonging to Faith Muthoni. Collected at Security Desk Gate B.</p>
+                <div class="news-time"><i class="fa-regular fa-clock"></i> 1 hour ago • Community Post</div>
+              </div>
+            </div>
+
+            <!-- News 3 -->
+            <div class="mock-news-item">
+              <div class="news-icon-circle" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <i class="fa-solid fa-bolt"></i>
+              </div>
+              <div class="news-content">
+                <h5>Ndagani Main Road Streetlights Restored</h5>
+                <p>Kenya Power and Tharaka Nithi youth project completed repairs from Gate A down to Ndagani junction.</p>
+                <div class="news-time"><i class="fa-regular fa-clock"></i> 3 hours ago • Chuka Residents Forum</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PILLAR 4: CHUKA CONNECT
+           ========================================== -->
+      <div class="pillar-showcase-card" id="pillar-connect">
+        <div class="pillar-layout-grid">
+          <div class="pillar-info-col">
+            <span class="pillar-core-badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">
+              <i class="fa-solid fa-link"></i> Discover & Connect
+            </span>
+            <h3>4. Chuka Connect</h3>
+            <p class="pillar-desc-lead">
+              Help people discover accommodation, student opportunities, events, local services, study groups, and useful community contacts.
+            </p>
+            <ul class="pillar-feature-bullets">
+              <li><i class="fa-solid fa-circle-check"></i> Verified Ndagani Hostel Directory: borehole water, WiFi, distance to campus</li>
+              <li><i class="fa-solid fa-circle-check"></i> Part-time campus gigs, cyber assistant openings & paid internships</li>
+              <li><i class="fa-solid fa-circle-check"></i> Peer study circles (Engineering, Law, Nursing, Business, Computer Science)</li>
+              <li><i class="fa-solid fa-circle-check"></i> Verified directory for local electricians, plumbers, gas delivery & boda bodas</li>
+            </ul>
+            <button class="btn btn-student btn-open-login" data-role="student">
+              <i class="fa-solid fa-bed"></i> Search Hostels in Ndagani
+            </button>
+          </div>
+
+          <!-- Interactive Simulator: Connect Preview -->
+          <div class="pillar-interactive-preview">
+            <div class="preview-top-bar">
+              <span class="preview-status"><i class="fa-solid fa-bed" style="color: var(--accent-cyan);"></i> Accommodation & Local Services</span>
+              <span style="font-size: 0.75rem; color: var(--accent-teal);">Verified Landlords</span>
+            </div>
+
+            <!-- Connect 1: Hostel -->
+            <div class="mock-connect-item">
+              <div class="connect-left">
+                <i class="fa-solid fa-building-user connect-icon"></i>
+                <div class="connect-details">
+                  <h5>Sunrise Executive Hostels (Ndagani)</h5>
+                  <p><i class="fa-solid fa-wifi"></i> WiFi • <i class="fa-solid fa-droplet"></i> 24/7 Borehole • Single: KES 4,500/mo</p>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline btn-open-login" style="padding: 4px 12px; font-size: 0.75rem;">View</button>
+            </div>
+
+            <!-- Connect 2: Student Gig -->
+            <div class="mock-connect-item">
+              <div class="connect-left">
+                <i class="fa-solid fa-briefcase connect-icon" style="color: var(--role-business);"></i>
+                <div class="connect-details">
+                  <h5>Part-Time Graphic Designer & Cyber Clerk</h5>
+                  <p>Flexible hours around lectures • KES 600/shift • Ndagani Stage</p>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline btn-open-login" style="padding: 4px 12px; font-size: 0.75rem;">Apply</button>
+            </div>
+
+            <!-- Connect 3: Emergency Contacts -->
+            <div class="mock-connect-item">
+              <div class="connect-left">
+                <i class="fa-solid fa-truck-medical connect-icon" style="color: #ef4444;"></i>
+                <div class="connect-details">
+                  <h5>Chuka Emergency Helpline & Campus Clinic</h5>
+                  <p>24/7 Ambulance: 0720 000 000 • University Security Gate A</p>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline" onclick="showToast('Calling Emergency Center: 0720 000 000')" style="padding: 4px 12px; font-size: 0.75rem;">Call</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PILLAR 5: CHUKA MESSAGES
+           ========================================== -->
+      <div class="pillar-showcase-card" id="pillar-messages">
+        <div class="pillar-layout-grid">
+          <div class="pillar-info-col">
+            <span class="pillar-core-badge" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border-color: rgba(14, 165, 233, 0.4);">
+              <i class="fa-solid fa-comments"></i> Direct & Group Messaging
+            </span>
+            <h3>5. Chuka Messages</h3>
+            <p class="pillar-desc-lead">
+              Private conversations between users, inquiries between customers and shops, and eventually group discussions for clubs, classes, and local communities.
+            </p>
+            <ul class="pillar-feature-bullets">
+              <li><i class="fa-solid fa-circle-check"></i> Instant buyer-to-seller chats with product reference cards</li>
+              <li><i class="fa-solid fa-circle-check"></i> Academic study channels and campus department discussion boards</li>
+              <li><i class="fa-solid fa-circle-check"></i> Private end-to-end direct conversations between students & residents</li>
+              <li><i class="fa-solid fa-circle-check"></i> Landlord inquiry threads for vacant room negotiations</li>
+            </ul>
+            <button class="btn btn-primary btn-open-login">
+              <i class="fa-solid fa-paper-plane"></i> Launch In-App Chat
+            </button>
+          </div>
+
+          <!-- Interactive Simulator: Chat Threads -->
+          <div class="pillar-interactive-preview">
+            <div class="preview-top-bar">
+              <span class="preview-status"><i class="fa-solid fa-circle" style="color: #22c55e; font-size: 0.6rem;"></i> Chat with Ndagani Tech Point</span>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">Online</span>
+            </div>
+
+            <div class="mock-chat-thread">
+              <div class="chat-bubble chat-in">
+                Hello Dennis! Do you still have the engineering scientific calculator in stock at your Ndagani shop?
+              </div>
+              <div class="chat-bubble chat-out">
+                Yes Faith! Casio FX-991EX is available for KES 1,800. We can reserve it for you at Gate A or deliver to your hostel.
+              </div>
+              <div class="chat-bubble chat-in">
+                Awesome, I'm at Sunrise Hostels Ndagani. Can you send someone around 4 PM?
+              </div>
+              <div class="chat-bubble chat-out">
+                Done! Our rider will bring it right on time. Thank you for shopping local on Nexovanta! 🚀
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       THREE AUDIENCE SECTORS: STUDENTS, BUSINESS PEOPLE, RESIDENTS
+       ================================================================= -->
+  <section class="audiences-section">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-tag"><i class="fa-solid fa-users-viewfinder"></i> Tailored Experience</span>
+        <h2 class="section-title">Designed for Everyone in <span class="gradient-text">Chuka</span></h2>
+        <p class="section-subtitle">
+          Whether you're studying at Chuka University, running a local business, or living in the surrounding community — Nexovanta empowers your daily life.
+        </p>
+      </div>
+
+      <div class="audience-cards-grid">
+        <!-- 1. Students -->
+        <div class="audience-card card-student" data-role="student">
+          <div class="card-top-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h3>1. Chuka Students</h3>
+          <p class="card-intro">
+            Thrive through campus life with peer connections, budget housing, study materials, and student gigs.
+          </p>
+          <ul class="audience-benefits-list">
+            <li><i class="fa-solid fa-check"></i> Find vetted hostels near Main Campus & Ndagani</li>
+            <li><i class="fa-solid fa-check"></i> Buy & sell revision books, lab coats, laptops & furniture</li>
+            <li><i class="fa-solid fa-check"></i> Join department study circles & student club discussions</li>
+            <li><i class="fa-solid fa-check"></i> Real-time alerts on exams, portal closures & campus events</li>
+          </ul>
+          <button class="btn btn-student btn-open-login" data-role="student">
+            <i class="fa-solid fa-right-to-bracket"></i> Student Login / Register
+          </button>
+        </div>
+
+        <!-- 2. Business People -->
+        <div class="audience-card card-business" data-role="business">
+          <div class="card-top-icon">
+            <i class="fa-solid fa-store"></i>
+          </div>
+          <h3>2. Business People</h3>
+          <p class="card-intro">
+            Scale your trade, reach 15,000+ university students and local residents with a customized digital storefront.
+          </p>
+          <ul class="audience-benefits-list">
+            <li><i class="fa-solid fa-check"></i> Set up your digital store catalog in minutes</li>
+            <li><i class="fa-solid fa-check"></i> Receive orders and direct buyer inquiries via WhatsApp</li>
+            <li><i class="fa-solid fa-check"></i> Promote daily student meal offers, tech sales & printing</li>
+            <li><i class="fa-solid fa-check"></i> Gain verified merchant status for trust & credibility</li>
+          </ul>
+          <button class="btn btn-business btn-open-login" data-role="business">
+            <i class="fa-solid fa-right-to-bracket"></i> Merchant Login / Register
+          </button>
+        </div>
+
+        <!-- 3. Chuka Residents -->
+        <div class="audience-card card-resident" data-role="resident">
+          <div class="card-top-icon">
+            <i class="fa-solid fa-house-chimney"></i>
+          </div>
+          <h3>3. Chuka Residents</h3>
+          <p class="card-intro">
+            Connect with your neighbors, advertise rental properties, hire local artisans, and stay in touch with town developments.
+          </p>
+          <ul class="audience-benefits-list">
+            <li><i class="fa-solid fa-check"></i> List vacant rooms and apartments to verified tenants</li>
+            <li><i class="fa-solid fa-check"></i> Community security updates & Tharaka Nithi announcements</li>
+            <li><i class="fa-solid fa-check"></i> Discover reliable plumbers, electricians & boda riders</li>
+            <li><i class="fa-solid fa-check"></i> Post in Chuka town forums and lost-and-found boards</li>
+          </ul>
+          <button class="btn btn-resident btn-open-login" data-role="resident">
+            <i class="fa-solid fa-right-to-bracket"></i> Resident Login / Register
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       COMMUNITY CTA BANNER
+       ================================================================= -->
+  <section class="community-banner-section">
+    <div class="container">
+      <div class="cta-banner-box">
+        <h2>Be Part of the Nexovanta Movement</h2>
+        <p>
+          Join thousands of Chuka University students, local business owners, and town residents building Kenya's strongest connected university town platform.
+        </p>
+        <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+          <a href="login.html" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-user-plus"></i> Create Free Account
+          </a>
+          <button class="btn btn-outline btn-lg btn-open-login">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In to Existing Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       AUTHENTICATION MODAL (ROLE-DIFFERENTIATED FOR 3 AUDIENCES)
+       ================================================================= -->
+  <div class="auth-modal-backdrop" id="authModal">
+    <div class="auth-modal-card">
+      <button class="modal-close-btn" id="modalCloseBtn" title="Close Modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="auth-modal-header">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="auth-logo-img">
+        <h3 id="authModalRoleText">🎓 Chuka University Student Portal</h3>
+        <p id="authRoleHelper">Connect with classmates, find hostels, trade revision books, and get campus updates.</p>
+      </div>
+
+      <!-- Category Segmenter (Student, Business, Resident) -->
+      <div class="auth-category-selector">
+        <span class="auth-category-label">Select Your Account Type:</span>
+        <div class="auth-category-grid">
+          <button type="button" class="auth-cat-btn cat-student active" data-cat="student">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Student</span>
+          </button>
+          <button type="button" class="auth-cat-btn cat-business" data-cat="business">
+            <i class="fa-solid fa-store"></i>
+            <span>Business</span>
+          </button>
+          <button type="button" class="auth-cat-btn cat-resident" data-cat="resident">
+            <i class="fa-solid fa-house-chimney"></i>
+            <span>Resident</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode Selector (Login vs Register) -->
+      <div class="auth-mode-tabs">
+        <button class="auth-tab-btn active" data-mode="login">Log In</button>
+        <button class="auth-tab-btn" data-mode="register">Create Account</button>
+      </div>
+
+      <!-- Auth Form -->
+      <div class="auth-modal-body">
+        <form id="authForm">
+          <!-- Primary Identifier -->
+          <div class="auth-form-group">
+            <label class="auth-label" id="primaryIdentifierLabel">Student Reg No or Student Email</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-user-circle auth-input-icon"></i>
+              <input type="text" id="primaryIdentifierInput" class="auth-input" placeholder="e.g. EB3/12345/23 or student@chuka.ac.ke" required>
+            </div>
+          </div>
+
+          <!-- Dynamic Role-Specific Registration Fields -->
+          <div id="roleDynamicFields"></div>
+
+          <!-- Password Field -->
+          <div class="auth-form-group">
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-lock auth-input-icon"></i>
+              <input type="password" class="auth-input" placeholder="••••••••••••" required>
+            </div>
+          </div>
+
+          <!-- Remember Me & Forgot Password (Login Mode) -->
+          <div class="auth-options-row" id="rememberRow">
+            <label class="auth-checkbox-label">
+              <input type="checkbox" checked> Keep me logged in
+            </label>
+            <a href="#" class="forgot-link" onclick="showToast('Password reset link sent to your phone/email.')">Forgot password?</a>
+          </div>
+
+          <!-- Terms Checkbox (Register Mode) -->
+          <div class="auth-options-row" id="termsRow" style="display: none;">
+            <label class="auth-checkbox-label">
+              <input type="checkbox" required> I agree to Nexovanta Community Terms & Safety Guidelines
+            </label>
+          </div>
+
+          <button type="submit" id="authSubmitBtn" class="btn btn-primary btn-lg" style="width: 100%;">
+            Log In to Nexovanta
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================
+       FOOTER
+       ================================================================= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo-wrap" style="margin-bottom: 12px;">
+            <img src="Logo.jpg" alt="Nexovanta Logo" class="brand-logo-img">
+            <div class="brand-text-block">
+              <span class="brand-name">NEXOVANTA</span>
+              <span class="brand-badge"><i class="fa-solid fa-location-dot"></i> CHUKA</span>
+            </div>
+          </div>
+          <p>
+            The dedicated digital community platform uniting Chuka University students, local businesses, and town residents into one thriving ecosystem.
+          </p>
+          <div style="font-size: 0.82rem; color: var(--accent-teal); font-weight: 600;">
+            <i class="fa-solid fa-shield-halved"></i> Your Community. Our Platform.
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>The 5 Pillars</h4>
+          <ul>
+            <li><a href="#pillar-community">1. Chuka Community Feed</a></li>
+            <li><a href="marketplace.html">2. Chuka Marketplace</a></li>
+            <li><a href="#pillar-news">3. Chuka News & Updates</a></li>
+            <li><a href="#pillar-connect">4. Chuka Connect (Hostels)</a></li>
+            <li><a href="#pillar-messages">5. Chuka Messages</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Community Roles</h4>
+          <ul>
+            <li><a href="login.html?role=student">🎓 Chuka University Students</a></li>
+            <li><a href="login.html?role=business">💼 Local Business & Shops</a></li>
+            <li><a href="login.html?role=resident">🏘️ Chuka Town Residents</a></li>
+            <li><a href="#five-pillars">Hostel Listings Ndagani</a></li>
+            <li><a href="#five-pillars">Lost & Found Registry</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Chuka Support & Safety</h4>
+          <ul>
+            <li><a href="tel:+254720000000"><i class="fa-solid fa-phone"></i> Emergency Helpline</a></li>
+            <li><a href="#"><i class="fa-solid fa-building-columns"></i> University Portal</a></li>
+            <li><a href="#"><i class="fa-solid fa-shield"></i> Community Guidelines</a></li>
+            <li><a href="#"><i class="fa-solid fa-circle-question"></i> Help & FAQs</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Nexovanta Community Platform. All rights reserved. Connecting Ndagani & Chuka town.</div>
+        <div style="display: flex; gap: 18px;">
+          <a href="#" style="color: var(--text-dim); text-decoration: none;">Privacy Policy</a>
+          <a href="#" style="color: var(--text-dim); text-decoration: none;">Terms of Service</a>
+          <a href="#" style="color: var(--text-dim); text-decoration: none;">Chuka Campus Hub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- NexovantaDB + App Script -->
+  <script src="nexovanta-db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Sign Up | Nexovanta Chuka Community Platform</title>
+  <meta name="description" content="Join Nexovanta — the social platform connecting Chuka University students, local businesses, and Ndagani residents.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Supabase Auth and profile integration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+
+  <style>
+    .auth-page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      position: relative;
+    }
+
+    .auth-back-link {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: rgba(207, 98, 8, 0.7);
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-light);
+      backdrop-filter: blur(12px);
+      transition: var(--transition);
+      z-index: 100;
+    }
+    .auth-back-link:hover {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      background: rgba(20, 7, 7, 0.9);
+      transform: translateX(-3px);
+    }
+
+    .auth-card-container {
+      width: 100%;
+      max-width: 620px;
+      background: rgba(11, 20, 38, 0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 30px rgba(0,210,255,0.15);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .auth-card-header {
+      padding: 36px 36px 20px 36px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .login-logo {
+      height: 60px;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 4px 12px rgba(0,210,255,0.4));
+      border-radius: 10px;
+    }
+    .auth-tagline { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Role Selector */
+    .role-select-box {
+      padding: 20px 36px;
+      background: rgba(6,11,24,0.6);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .role-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 10px; }
+
+    .role-card-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-muted);
+    }
+    .role-card-btn i { font-size: 1.5rem; transition: var(--transition); }
+    .role-card-btn span.role-title { font-size: 0.82rem; font-weight: 700; line-height: 1.2; }
+    .role-card-btn span.role-sub { font-size: 0.68rem; color: var(--text-dim); }
+    .role-card-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .role-card-btn.active.student { border-color: var(--role-student); background: rgba(0,210,255,0.15); color: var(--role-student); box-shadow: 0 0 16px rgba(0,210,255,0.25); }
+    .role-card-btn.active.business { border-color: var(--role-business); background: rgba(245,158,11,0.15); color: var(--role-business); box-shadow: 0 0 16px rgba(245,158,11,0.25); }
+    .role-card-btn.active.resident { border-color: var(--role-resident); background: rgba(16,185,129,0.15); color: var(--role-resident); box-shadow: 0 0 16px rgba(16,185,129,0.25); }
+
+    .role-info-banner { margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.78rem; line-height: 1.4; display: flex; align-items: center; gap: 10px; }
+    .role-info-banner.student { background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.25); color: #7dd3fc; }
+    .role-info-banner.business { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: #fcd34d; }
+    .role-info-banner.resident { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #6ee7b7; }
+
+    /* Mode Tabs */
+    .auth-mode-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border-light); }
+    .auth-tab-btn { background: none; border: none; padding: 16px; font-family: var(--font-heading); font-size: 0.9rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; border-bottom: 2px solid transparent; }
+    .auth-tab-btn:hover { color: #fff; }
+    .auth-tab-btn.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+
+    /* Form Body */
+    .auth-card-body { padding: 30px 36px; }
+
+    /* Input Validation States */
+    .auth-input.valid { border-color: var(--accent-teal) !important; }
+    .auth-input.invalid { border-color: #ef4444 !important; }
+
+    /* Username Availability Indicator */
+    .username-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      margin-top: 6px;
+      min-height: 20px;
+      transition: var(--transition);
+    }
+    .username-indicator.available { color: var(--accent-teal); }
+    .username-indicator.taken { color: #ef4444; }
+    .username-indicator.checking { color: var(--text-muted); }
+    .username-indicator.hint { color: var(--text-dim); }
+
+    /* Field Error */
+    .field-error { font-size: 0.76rem; color: #ef4444; margin-top: 4px; display: none; }
+    .field-error.show { display: block; }
+
+    /* Password Toggle */
+    .auth-input-wrap { position: relative; }
+    .pw-toggle-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .pw-toggle-btn:hover { color: var(--accent-cyan); }
+
+    /* Demo Login */
+    .demo-login-box {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(0,210,255,0.05);
+      border: 1px solid rgba(0,210,255,0.15);
+      border-radius: var(--radius-md);
+    }
+    .demo-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .demo-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .demo-pill {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-heading);
+    }
+    .demo-pill:hover { background: rgba(0,210,255,0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+    /* Auth submit spinner */
+    .btn-spinner { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Form divider */
+    .form-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .form-divider::before, .form-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+    .form-divider span { font-size: 0.72rem; color: var(--text-dim); white-space: nowrap; }
+
+    @media (max-width: 600px) {
+      .auth-card-container { border-radius: var(--radius-lg); }
+      .role-grid-3 { grid-template-columns: 1fr; }
+      .auth-card-header, .role-select-box, .auth-card-body { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <div class="auth-page-wrapper">
+
+    <div class="auth-card-container">
+      <!-- Header -->
+      <div class="auth-card-header">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="login-logo">
+        <h2 id="pageMainTitle">Welcome to Nexovanta</h2>
+        <p class="auth-tagline">Connecting Chuka University Students, Local Businesses &amp; Residents</p>
+      </div>
+
+      <!-- 3-Role Category Segmenter -->
+      <div class="role-select-box">
+        <label class="auth-label" style="text-align:center;margin-bottom:8px;">Choose Your Category in Chuka:</label>
+        <div class="role-grid-3">
+          <button type="button" class="role-card-btn student active" data-role="student">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span class="role-title">Students</span>
+            <span class="role-sub">Chuka University</span>
+          </button>
+          <button type="button" class="role-card-btn business" data-role="business">
+            <i class="fa-solid fa-store"></i>
+            <span class="role-title">Business People</span>
+            <span class="role-sub">Shops &amp; Traders</span>
+          </button>
+          <button type="button" class="role-card-btn resident" data-role="resident">
+            <i class="fa-solid fa-house-chimney"></i>
+            <span class="role-title">Chuka Residents</span>
+            <span class="role-sub">Landlords &amp; Locals</span>
+          </button>
+        </div>
+        <div id="roleInfoBanner" class="role-info-banner student">
+          <i class="fa-solid fa-circle-info"></i>
+          <span id="roleInfoText"><strong>Student Account:</strong> Access Ndagani hostel vacancies, study groups, revision book flea-market, and campus circulars.</span>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="auth-mode-tabs">
+        <button class="auth-tab-btn active" id="tabLogin" data-mode="login">
+          <i class="fa-solid fa-right-to-bracket"></i> Log In
+        </button>
+        <button class="auth-tab-btn" id="tabRegister" data-mode="register">
+          <i class="fa-solid fa-user-plus"></i> Create Account
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <div class="auth-card-body">
+        <form id="pageAuthForm" novalidate>
+
+          <!-- ======== REGISTRATION-ONLY FIELDS ======== -->
+          <!-- Full Name (Register only) -->
+          <div class="auth-form-group" id="fullNameGroup" style="display:none;">
+            <label class="auth-label">Full Name</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-user auth-input-icon"></i>
+              <input type="text" class="auth-input" id="inputFullName" placeholder="e.g. Dennis Munene" autocomplete="name">
+            </div>
+          </div>
+
+          <!-- Username (Register only) -->
+          <div class="auth-form-group" id="usernameGroup" style="display:none;">
+            <label class="auth-label">
+              Username <span style="color:var(--accent-cyan);">*</span>
+              <span style="font-size:0.72rem;color:var(--text-dim);font-weight:400;margin-left:4px;">This is your public identity</span>
+            </label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-at auth-input-icon"></i>
+              <input type="text" class="auth-input" id="inputUsername"
+                     placeholder="e.g. amosletela"
+                     autocomplete="username"
+                     maxlength="30"
+                     pattern="[a-zA-Z0-9_]{3,30}"
+                     required>
+            </div>
+            <div id="usernameIndicator" class="username-indicator hint">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>Letters, numbers and underscores only. 3–30 characters.</span>
+            </div>
+            <div class="field-error" id="usernameError"></div>
+          </div>
+
+          <!-- ======== LOGIN / BOTH ======== -->
+          <!-- Primary Identifier: Username or Email (Login) | Email / Reg No (Register) -->
+          <div class="auth-form-group">
+            <label class="auth-label" id="primaryIdLabel">Username or Email</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-id-badge auth-input-icon"></i>
+              <input type="text" class="auth-input" id="inputPrimaryId"
+                     placeholder="Enter your username or email"
+                     autocomplete="username email"
+                     required>
+            </div>
+            <div class="field-error" id="primaryIdError"></div>
+          </div>
+
+          <!-- Role-specific register fields (faculty, location, etc.) -->
+          <div id="roleSpecificContainer"></div>
+
+          <!-- Phone (Register only) -->
+          <div class="auth-form-group" id="phoneGroup" style="display:none;">
+            <label class="auth-label">M-Pesa / WhatsApp Phone Number</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-phone auth-input-icon"></i>
+              <input type="tel" class="auth-input" id="inputPhone" placeholder="e.g. 0712 345 678" autocomplete="tel">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="auth-form-group">
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-lock auth-input-icon"></i>
+              <input type="password" class="auth-input" id="inputPassword" placeholder="••••••••••••" required autocomplete="current-password" style="padding-right:44px;">
+              <button type="button" class="pw-toggle-btn" id="pwToggle" title="Show/hide password">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="field-error" id="passwordError"></div>
+          </div>
+
+          <!-- Confirm Password (Register only) -->
+          <div class="auth-form-group" id="confirmPwGroup" style="display:none;">
+            <label class="auth-label">Confirm Password</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-lock auth-input-icon"></i>
+              <input type="password" class="auth-input" id="inputConfirmPw" placeholder="••••••••••••" style="padding-right:44px;" autocomplete="new-password">
+              <button type="button" class="pw-toggle-btn" id="confirmPwToggle" title="Show/hide password">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="field-error" id="confirmPwError"></div>
+          </div>
+
+          <!-- Remember Me / Forgot Password (Login) -->
+          <div class="auth-options-row" id="pageRememberRow">
+            <label class="auth-checkbox-label">
+              <input type="checkbox" id="rememberMe" checked> Keep me logged in
+            </label>
+            <a href="#" class="forgot-link" id="forgotPwLink">Forgot password?</a>
+          </div>
+
+          <!-- Terms (Register) -->
+          <div class="auth-options-row" id="pageTermsRow" style="display:none;">
+            <label class="auth-checkbox-label">
+              <input type="checkbox" id="termsCheck"> I accept the Nexovanta Community Terms &amp; Safety Code
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="pageSubmitBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span id="submitBtnText">Log In to Nexovanta</span>
+          </button>
+
+          <!-- Auth Error Message -->
+          <div id="authErrorMsg" style="display:none;margin-top:12px;padding:12px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);color:#fca5a5;font-size:0.85rem;"></div>
+          <div id="authSuccessMsg" style="display:none;margin-top:12px;padding:12px 16px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius-sm);color:#6ee7b7;font-size:0.85rem;"></div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── State ───────────────────────────────────────────────────────────────────
+    let pageRole = 'student';
+    let pageMode = 'login';
+    let usernameCheckTimer = null;
+    let usernameValid = false;
+
+    // ─── Return URL helper ────────────────────────────────────────────────────────
+    function getReturnUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const ret = params.get('return');
+      // Only allow relative paths to prevent open-redirect attacks
+      if (ret && ret.startsWith('/') && !ret.startsWith('//')) return ret;
+      return 'feed.html';
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (NexovantaAuth.isConfigured) {
+        try {
+          if (await NexovantaAuth.getCurrentProfile()) {
+            window.location.href = getReturnUrl();
+            return;
+          }
+        } catch (error) {
+          showAuthMessage('error', 'Unable to verify your Supabase session. Please try again.');
+        }
+      }
+
+      // Check URL param for pre-selected role and mode
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get('role');
+      const modeParam = params.get('mode');
+      if (roleParam && ['student','business','resident'].includes(roleParam)) selectRole(roleParam);
+      if (modeParam === 'register') setMode('register');
+
+      // Role buttons
+      document.querySelectorAll('.role-card-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectRole(btn.getAttribute('data-role')));
+      });
+
+      // Mode tabs
+      document.getElementById('tabLogin').addEventListener('click', () => setMode('login'));
+      document.getElementById('tabRegister').addEventListener('click', () => setMode('register'));
+
+      // Password toggles
+      setupPwToggle('pwToggle', 'inputPassword');
+      setupPwToggle('confirmPwToggle', 'inputConfirmPw');
+
+      // Username live validation
+      document.getElementById('inputUsername')?.addEventListener('input', debounce(checkUsername, 400));
+
+      // Forgot password
+      document.getElementById('forgotPwLink').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('inputPrimaryId').value.trim();
+        if (!email.includes('@')) {
+          showAuthMessage('error', 'Enter your account email first to request a password reset.');
+          return;
+        }
+        try {
+          await NexovantaAuth.resetPassword(email);
+          showAuthMessage('success', 'Password reset instructions have been sent to your email.');
+        } catch (error) {
+          showAuthMessage('error', error.message || 'Unable to request a password reset.');
+        }
+      });
+
+      // Form submit
+      document.getElementById('pageAuthForm').addEventListener('submit', handleFormSubmit);
+
+      if (!NexovantaAuth.isConfigured) {
+        showAuthMessage('error', 'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in .env, then run node server.js.');
+      }
+
+      renderFields();
+    });
+
+    // ─── Role Selection ───────────────────────────────────────────────────────────
+    function selectRole(role) {
+      pageRole = role;
+      document.querySelectorAll('.role-card-btn').forEach(btn => {
+        const r = btn.getAttribute('data-role');
+        btn.classList.toggle('active', r === role);
+      });
+
+      const banner = document.getElementById('roleInfoBanner');
+      const text = document.getElementById('roleInfoText');
+      banner.className = `role-info-banner ${role}`;
+
+      const infos = {
+        student: '<strong>Student Account:</strong> Access hostel vacancies, study groups, revision book market, and campus circulars.',
+        business: '<strong>Business Hub:</strong> Create your digital storefront, upload products, and reach 15,000+ campus students.',
+        resident: '<strong>Chuka Resident:</strong> Connect with landlords, report community issues, hire vetted local artisans, and follow town news.'
+      };
+      text.innerHTML = infos[role] || infos.student;
+
+      renderFields();
+    }
+
+    // ─── Mode Switching ───────────────────────────────────────────────────────────
+    function setMode(mode) {
+      pageMode = mode;
+      const isLogin = mode === 'login';
+
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+
+      // Show/hide register-only fields
+      ['fullNameGroup','usernameGroup','phoneGroup','confirmPwGroup','pageTermsRow'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = isLogin ? 'none' : 'block';
+      });
+
+      document.getElementById('pageRememberRow').style.display = isLogin ? 'flex' : 'none';
+      document.getElementById('submitBtnText').textContent = isLogin ? 'Log In to Nexovanta' : 'Create My Nexovanta Account';
+
+      // Reset errors
+      clearErrors();
+      renderFields();
+    }
+
+    // ─── Role-specific fields ─────────────────────────────────────────────────────
+    function renderFields() {
+      const container = document.getElementById('roleSpecificContainer');
+      const primaryLabel = document.getElementById('primaryIdLabel');
+      const primaryInput = document.getElementById('inputPrimaryId');
+
+      if (pageMode === 'login') {
+        primaryLabel.textContent = 'Email address';
+        primaryInput.placeholder = 'Enter your account email';
+        container.innerHTML = '';
+        return;
+      }
+
+      // Register mode: show role-specific fields
+      if (pageRole === 'student') {
+        primaryLabel.textContent = 'Student Email';
+        primaryInput.placeholder = 'e.g. student@chuka.ac.ke';
+        container.innerHTML = `
+          <div class="auth-form-group">
+            <label class="auth-label">Faculty / Academic Department</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-graduation-cap auth-input-icon"></i>
+              <select class="auth-input auth-select" id="fieldFaculty">
+                <option value="" disabled selected>Select your Faculty</option>
+                <option value="sci-tech">Faculty of Science, Engineering &amp; Technology</option>
+                <option value="business">Faculty of Business Studies</option>
+                <option value="health">Faculty of Health &amp; Medical Sciences</option>
+                <option value="arts">Faculty of Humanities &amp; Social Sciences</option>
+                <option value="law">Faculty of Law</option>
+                <option value="agri">Faculty of Agriculture &amp; Environmental Sciences</option>
+              </select>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Year of Study &amp; Residence Zone</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-location-dot auth-input-icon"></i>
+              <select class="auth-input auth-select" id="fieldYear">
+                <option value="" disabled selected>Select Year &amp; Location</option>
+                <option value="y1-ndagani">Year 1 - Ndagani Hostels</option>
+                <option value="y2-ndagani">Year 2 - Ndagani Hostels</option>
+                <option value="y3-town">Year 3 - Chuka Town / Kangaru</option>
+                <option value="y4-internal">Year 4 - Internal Campus Halls</option>
+                <option value="postgrad">Postgraduate / Masters</option>
+              </select>
+            </div>
+          </div>
+        `;
+      } else if (pageRole === 'business') {
+        primaryLabel.textContent = 'Business Email';
+        primaryInput.placeholder = 'e.g. shop@chukabusiness.com';
+        container.innerHTML = `
+          <div class="auth-form-group">
+            <label class="auth-label">Business / Shop Name</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-store auth-input-icon"></i>
+              <input type="text" class="auth-input" id="fieldShopName" placeholder="e.g. Ndagani Cyber Hub &amp; Cafe">
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Business Category</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-tags auth-input-icon"></i>
+              <select class="auth-input auth-select" id="fieldBizCategory">
+                <option value="" disabled selected>Select Category</option>
+                <option value="retail">Retail Shop / Mini-Supermarket</option>
+                <option value="food">Restaurant, Cafe &amp; Ndagani Fast Foods</option>
+                <option value="tech">Tech, Laptops, Phones &amp; Printing</option>
+                <option value="hostel-mgmt">Hostel / Rental Property Management</option>
+                <option value="salon">Salon, Kinyozi &amp; Grooming</option>
+                <option value="transport">Boda Boda &amp; Transport Service</option>
+                <option value="pharmacy">Chemist &amp; Health Services</option>
+              </select>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Physical Location in Chuka</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-map-pin auth-input-icon"></i>
+              <input type="text" class="auth-input" id="fieldBizLocation" placeholder="e.g. Ndagani Stage, opposite Gate B">
+            </div>
+          </div>
+        `;
+      } else {
+        primaryLabel.textContent = 'Email address';
+        primaryInput.placeholder = 'e.g. resident@gmail.com';
+        container.innerHTML = `
+          <div class="auth-form-group">
+            <label class="auth-label">Area of Residence in Chuka</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-house-chimney auth-input-icon"></i>
+              <select class="auth-input auth-select" id="fieldResArea">
+                <option value="" disabled selected>Select Residence Area</option>
+                <option value="ndagani">Ndagani Community</option>
+                <option value="chuka-town">Chuka Town Central</option>
+                <option value="kangaru">Kangaru / Junction Area</option>
+                <option value="weru">Weru / Karingani</option>
+                <option value="kibugua">Kibugua / Surrounding Hills</option>
+              </select>
+            </div>
+          </div>
+          <div class="auth-form-group">
+            <label class="auth-label">Community Occupation</label>
+            <div class="auth-input-wrap">
+              <i class="fa-solid fa-briefcase auth-input-icon"></i>
+              <select class="auth-input auth-select" id="fieldOccupation">
+                <option value="landlord">Landlord / Property Owner</option>
+                <option value="artisan">Artisan / Technician / Local Expert</option>
+                <option value="professional">Resident / Civil Servant / Professional</option>
+                <option value="elder">Community Elder / Leader</option>
+              </select>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // ─── Username validation ──────────────────────────────────────────────────────
+    function checkUsername() {
+      const input = document.getElementById('inputUsername');
+      const indicator = document.getElementById('usernameIndicator');
+      const errorEl = document.getElementById('usernameError');
+      const raw = input.value;
+
+      if (!raw) {
+        indicator.className = 'username-indicator hint';
+        indicator.innerHTML = '<i class="fa-solid fa-circle-info"></i> <span>Letters, numbers and underscores only. 3–30 characters.</span>';
+        usernameValid = false;
+        return;
+      }
+
+      const result = NexovantaDB.validateUsername(raw);
+      if (!result.valid) {
+        indicator.className = 'username-indicator taken';
+        indicator.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span>${result.error}</span>`;
+        input.classList.add('invalid');
+        input.classList.remove('valid');
+        usernameValid = false;
+        return;
+      }
+
+      indicator.className = 'username-indicator checking';
+      indicator.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Checking availability…</span>';
+
+      clearTimeout(usernameCheckTimer);
+      usernameCheckTimer = setTimeout(async () => {
+        try {
+          const available = await NexovantaAuth.isUsernameAvailable(result.username);
+          if (!available) {
+          indicator.className = 'username-indicator taken';
+          indicator.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span>@${result.username} is already taken.</span>`;
+          input.classList.add('invalid');
+          input.classList.remove('valid');
+          usernameValid = false;
+          } else {
+            indicator.className = 'username-indicator available';
+            indicator.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>@${result.username} is available!</span>`;
+            input.classList.remove('invalid');
+            input.classList.add('valid');
+            usernameValid = true;
+          }
+        } catch (error) {
+          indicator.className = 'username-indicator taken';
+          indicator.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> <span>Unable to check username availability. Check Supabase setup.</span>';
+          usernameValid = false;
+        }
+      }, 300);
+    }
+
+    // ─── Form Submission ──────────────────────────────────────────────────────────
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      clearErrors();
+
+      const btn = document.getElementById('pageSubmitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch btn-spinner"></i> Please wait…';
+
+      try {
+        if (pageMode === 'login') {
+          await handleLogin();
+        } else {
+          await handleRegister();
+        }
+      } catch (error) {
+        showAuthMessage('error', error.message || 'Authentication failed. Please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-${pageMode === 'login' ? 'right-to-bracket' : 'user-plus'}"></i> <span id="submitBtnText">${pageMode === 'login' ? 'Log In to Nexovanta' : 'Create My Nexovanta Account'}</span>`;
+      }
+    }
+
+    async function handleLogin() {
+      const identifier = document.getElementById('inputPrimaryId').value.trim();
+      const password = document.getElementById('inputPassword').value;
+
+      if (!identifier || !identifier.includes('@')) {
+        showFieldError('primaryIdError', 'Enter the email address associated with your account.');
+        return;
+      }
+      if (!password) {
+        showFieldError('passwordError', 'Please enter your password.');
+        return;
+      }
+
+      const session = await NexovantaAuth.signIn(identifier.toLowerCase(), password);
+      showAuthMessage('success', `Welcome back, @${session.username}! Redirecting…`);
+      setTimeout(() => window.location.href = getReturnUrl(), 1200);
+    }
+
+    async function handleRegister() {
+      const fullName = document.getElementById('inputFullName').value.trim();
+      const usernameRaw = document.getElementById('inputUsername').value.trim();
+      const identifier = document.getElementById('inputPrimaryId').value.trim();
+      const phone = document.getElementById('inputPhone').value.trim();
+      const password = document.getElementById('inputPassword').value;
+      const confirmPw = document.getElementById('inputConfirmPw').value;
+      const termsChecked = document.getElementById('termsCheck').checked;
+
+      // Validations
+      let hasError = false;
+
+      if (!identifier) {
+        showFieldError('primaryIdError', 'Please enter your email address.');
+        hasError = true;
+      } else if (!identifier.includes('@')) {
+        showFieldError('primaryIdError', 'Supabase sign-up requires a valid email address.');
+        hasError = true;
+      }
+
+      // Username server-side validation
+      const usernameResult = NexovantaDB.validateUsername(usernameRaw);
+      if (!usernameResult.valid) {
+        showFieldError('usernameError', usernameResult.error);
+        hasError = true;
+      }
+
+      if (!password || password.length < 6) {
+        showFieldError('passwordError', 'Password must be at least 6 characters.');
+        hasError = true;
+      }
+
+      if (password !== confirmPw) {
+        showFieldError('confirmPwError', 'Passwords do not match.');
+        hasError = true;
+      }
+
+      if (!termsChecked) {
+        showAuthMessage('error', 'Please accept the Nexovanta Community Terms to continue.');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      if (!await NexovantaAuth.isUsernameAvailable(usernameResult.username)) {
+        showFieldError('usernameError', `@${usernameResult.username} is already taken. Please choose another.`);
+        return;
+      }
+
+      const location = pageRole === 'business'
+        ? document.getElementById('fieldBizLocation')?.value.trim() || ''
+        : pageRole === 'resident'
+          ? document.getElementById('fieldResArea')?.value || ''
+          : '';
+      const result = await NexovantaAuth.signUp({
+        email: identifier.toLowerCase(),
+        password,
+        profile: {
+          username: usernameResult.username,
+          full_name: fullName || usernameResult.username,
+          phone,
+          role: pageRole,
+          community_category: pageRole === 'student' ? 'campus' : pageRole === 'business' ? 'business' : 'community',
+          location,
+        },
+      });
+
+      if (result.needsEmailConfirmation) {
+        showAuthMessage('success', 'Account created. Check your email to confirm the account, then sign in.');
+        return;
+      }
+
+      const session = result.profile;
+
+      if (pageRole === 'business') {
+        showAuthMessage('success', `🎉 Business account created! Welcome, @${session.username}! Setting up your storefront…`);
+        setTimeout(() => window.location.href = 'storefront.html', 1500);
+      } else {
+        showAuthMessage('success', `🎉 Account created! Welcome to Nexovanta, @${session.username}! Redirecting…`);
+        setTimeout(() => window.location.href = getReturnUrl(), 1500);
+      }
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────────
+    function setupPwToggle(btnId, inputId) {
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (!btn || !input) return;
+      btn.addEventListener('click', () => {
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        btn.querySelector('i').className = `fa-solid fa-eye${isPass ? '-slash' : ''}`;
+      });
+    }
+
+    function showFieldError(id, msg) {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = msg; el.classList.add('show'); }
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; el.classList.remove('show'); });
+      document.getElementById('authErrorMsg').style.display = 'none';
+      document.getElementById('authSuccessMsg').style.display = 'none';
+    }
+
+    function showAuthMessage(type, msg) {
+      const errEl = document.getElementById('authErrorMsg');
+      const sucEl = document.getElementById('authSuccessMsg');
+      if (type === 'error') {
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+        sucEl.style.display = 'none';
+      } else {
+        sucEl.textContent = msg;
+        sucEl.style.display = 'block';
+        errEl.style.display = 'none';
+      }
+    }
+
+    function debounce(fn, delay) {
+      let t;
+      return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
+    }
+  </script>
+</body>
+</html>

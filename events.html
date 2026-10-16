@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events Discovery & Creation | Nexovanta Chuka Community</title>
+  <link rel="icon" type="image/jpeg" href="Logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-auth.js"></script>
+  <script src="nexovanta-db.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <style>
+    /* ==========================================================================
+       EVENTS PAGE STYLES - NEXOVANTA CHUKA COMMUNITY
+       ========================================================================== */
+    :root {
+      --cat-campus: #00d2ff;
+      --cat-community: #00f5a0;
+      --cat-business: #f59e0b;
+      --cat-sports: #f97316;
+      --cat-culture: #a855f7;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 90px; /* space for mobile nav */
+    }
+
+    /* Fixed Video Background with overlay */
+    .video-bg-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .bg-video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.7) contrast(1.1);
+    }
+    .video-overlay-layer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 20%, rgba(13, 23, 44, 0.75) 0%, rgba(6, 11, 24, 0.94) 100%);
+      pointer-events: none;
+    }
+
+    /* Top Navbar Styling */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      background: rgba(11, 20, 38, 0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 74px;
+      gap: 16px;
+    }
+    .brand-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .brand-logo-img {
+      height: 44px;
+      width: auto;
+      border-radius: var(--radius-sm);
+      filter: drop-shadow(0 2px 8px rgba(0, 210, 255, 0.4));
+    }
+    .brand-text-block {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-name {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .brand-badge {
+      font-size: 0.68rem;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Global Nav Search */
+    .nav-search-wrap {
+      flex: 1;
+      max-width: 320px;
+      position: relative;
+      display: none;
+    }
+    @media (min-width: 900px) {
+      .nav-search-wrap { display: block; }
+    }
+    .nav-search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 9px 16px 9px 38px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .nav-search-input:focus {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.08);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+    }
+    .nav-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    /* Desktop Navigation links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      transition: var(--transition);
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .nav-link.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    /* Nav Actions */
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+    .icon-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-cyan);
+    }
+    .notif-count-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border-radius: 10px;
+      padding: 1px 5px;
+      min-width: 18px;
+      text-align: center;
+      border: 2px solid var(--bg-secondary);
+    }
+
+    /* Dropdown Menus */
+    .notif-dropdown-menu, .user-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      width: 330px;
+      background: rgba(11, 20, 38, 0.98);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 1100;
+      overflow: hidden;
+      animation: fadeInDown 0.2s ease forwards;
+    }
+    .notif-dropdown-menu.active, .user-dropdown-menu.active {
+      display: block;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .notif-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .notif-menu-header h4 {
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    .btn-text-link {
+      background: none;
+      border: none;
+      color: var(--accent-cyan);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .notif-list {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .notif-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .notif-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+    .notif-item.unread {
+      background: rgba(0, 210, 255, 0.07);
+    }
+
+    .user-profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 4px 12px 4px 4px;
+      cursor: pointer;
+      color: #fff;
+      transition: var(--transition);
+    }
+    .user-profile-trigger:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.1);
+    }
+    .user-handle {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    .caret-icon {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .user-dropdown-header {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .user-dropdown-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .user-dropdown-handle {
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+    }
+    .user-dropdown-role {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      display: inline-block;
+      margin-top: 4px;
+      background: rgba(0, 210, 255, 0.15);
+      color: var(--accent-cyan);
+    }
+    .user-dropdown-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 6px 0;
+    }
+    .user-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 18px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 600;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .user-dropdown-item:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .user-dropdown-item.logout-item:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* ==========================================================================
+       MAIN CONTENT CONTAINER (Centered, Max 1100px, NO SIDEBAR)
+       ========================================================================== */
+    .events-page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 30px 20px 60px 20px;
+    }
+
+    /* Hero Banner */
+    .events-hero-card {
+      background: linear-gradient(135deg, rgba(13, 23, 44, 0.9) 0%, rgba(16, 28, 54, 0.92) 100%);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      padding: 36px 32px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 210, 255, 0.15);
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .events-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+    }
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--accent-cyan);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 600px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Search & Filter Toolbar */
+    .events-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .search-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .search-input-wrapper i {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-cyan);
+      font-size: 1rem;
+    }
+    .events-search-field {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-full);
+      padding: 14px 20px 14px 48px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      backdrop-filter: blur(16px);
+      transition: var(--transition);
+    }
+    .events-search-field:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.25);
+      background: rgba(13, 23, 44, 0.95);
+    }
+
+    /* Filter Tabs */
+    .filter-tabs-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+    }
+    .filter-tabs-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .filter-tabs-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    .filter-chip {
+      background: rgba(13, 23, 44, 0.85);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-chip:hover {
+      color: #fff;
+      border-color: rgba(0, 210, 255, 0.4);
+      background: rgba(20, 36, 68, 0.9);
+    }
+    .filter-chip.active {
+      background: var(--grad-primary);
+      color: #060b18;
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0, 210, 255, 0.35);
+    }
+
+    /* Events Count & State Bar */
+    .events-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .events-meta-count strong {
+      color: #fff;
+    }
+
+    /* Events Grid */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 992px) {
+      .events-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .events-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Event Card */
+    .event-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+    .event-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0, 210, 255, 0.4);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 210, 255, 0.2);
+    }
+
+    /* Card Cover & Badges */
+    .event-cover-wrap {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-secondary);
+    }
+    .event-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .event-card:hover .event-cover-img {
+      transform: scale(1.05);
+    }
+    .event-placeholder-cover {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: rgba(255, 255, 255, 0.35);
+      position: relative;
+    }
+    .event-placeholder-cover.cat-campus {
+      background: linear-gradient(135deg, #092c48 0%, #0d547d 100%);
+      color: var(--cat-campus);
+    }
+    .event-placeholder-cover.cat-community {
+      background: linear-gradient(135deg, #083329 0%, #0e634f 100%);
+      color: var(--cat-community);
+    }
+    .event-placeholder-cover.cat-business {
+      background: linear-gradient(135deg, #3d2b09 0%, #78530f 100%);
+      color: var(--cat-business);
+    }
+    .event-placeholder-cover.cat-sports {
+      background: linear-gradient(135deg, #421c08 0%, #823810 100%);
+      color: var(--cat-sports);
+    }
+    .event-placeholder-cover.cat-culture {
+      background: linear-gradient(135deg, #301047 0%, #642394 100%);
+      color: var(--cat-culture);
+    }
+
+    .badge-top-left {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 2;
+    }
+    .badge-top-right {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+    }
+    .category-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .category-badge.campus {
+      background: rgba(0, 210, 255, 0.25);
+      border: 1px solid var(--cat-campus);
+      color: #fff;
+    }
+    .category-badge.community {
+      background: rgba(0, 245, 160, 0.25);
+      border: 1px solid var(--cat-community);
+      color: #fff;
+    }
+    .category-badge.business {
+      background: rgba(245, 158, 11, 0.25);
+      border: 1px solid var(--cat-business);
+      color: #fff;
+    }
+    .category-badge.sports {
+      background: rgba(249, 115, 22, 0.25);
+      border: 1px solid var(--cat-sports);
+      color: #fff;
+    }
+    .category-badge.culture {
+      background: rgba(168, 85, 247, 0.25);
+      border: 1px solid var(--cat-culture);
+      color: #fff;
+    }
+
+    .price-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .price-badge.free {
+      background: rgba(16, 185, 129, 0.3);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+    .price-badge.paid {
+      background: rgba(245, 158, 11, 0.3);
+      border: 1px solid #f59e0b;
+      color: #fde68a;
+    }
+
+    /* Card Content */
+    .event-card-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .event-date-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-cyan);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .event-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      height: 2.7em;
+    }
+    .event-location-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .event-location-row i {
+      color: #ef4444;
+      margin-top: 3px;
+    }
+    .event-organiser-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+    .event-organiser-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-weight: 700;
+      transition: var(--transition);
+    }
+    .event-organiser-link:hover {
+      text-decoration: underline;
+      color: #fff;
+    }
+
+    /* RSVP & Card Footer */
+    .event-card-footer {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .rsvp-status-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .going-stat {
+      color: var(--accent-teal);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .rsvp-actions-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .btn-rsvp {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: var(--transition);
+    }
+    .btn-rsvp:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn-rsvp.active.going {
+      background: rgba(0, 245, 160, 0.18);
+      border-color: var(--accent-teal);
+      color: var(--accent-teal);
+      font-weight: 700;
+    }
+    .btn-rsvp.active.interested {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: var(--cat-business);
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    .btn-rsvp.active.cannot_attend {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    .btn-view-details {
+      width: 100%;
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: var(--accent-cyan);
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 9px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    .btn-view-details:hover {
+      background: var(--accent-cyan);
+      color: #060b18;
+      box-shadow: 0 4px 16px rgba(0, 210, 255, 0.4);
+    }
+
+    /* Empty state */
+    .empty-events-box {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--bg-card);
+      border: 1px dashed var(--border-light);
+      border-radius: var(--radius-xl);
+      color: var(--text-muted);
+    }
+    .empty-events-box i {
+      font-size: 3rem;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    /* ==========================================================================
+       MODALS (DETAIL MODAL & CREATE EVENT MODAL)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(6, 11, 24, 0.85);
+      backdrop-filter: blur(14px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .modal-backdrop.active {
+      display: flex;
+      animation: fadeIn 0.2s ease forwards;
+    }
+    .modal-card {
+      background: rgba(13, 23, 44, 0.98);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 210, 255, 0.2);
+      position: relative;
+      animation: zoomIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-light);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      z-index: 10;
+      transition: var(--transition);
+    }
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    /* Detail Modal Specifics */
+    .detail-cover-header {
+      width: 100%;
+      height: 240px;
+      position: relative;
+      background: var(--bg-secondary);
+    }
+    .detail-cover-header img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .detail-body {
+      padding: 28px;
+    }
+    .detail-meta-tags {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .detail-title {
+      font-family: var(--font-heading);
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .detail-schedule-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 540px) {
+      .detail-schedule-card { grid-template-columns: 1fr; }
+    }
+    .schedule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+    .schedule-item i {
+      color: var(--accent-cyan);
+      font-size: 1.1rem;
+      margin-top: 2px;
+    }
+    .schedule-item strong {
+      display: block;
+      color: #fff;
+      font-size: 0.8rem;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .detail-description {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      margin-bottom: 24px;
+      white-space: pre-line;
+    }
+
+    /* Organiser Info Card */
+    .organiser-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .organiser-card-meta {
+      flex: 1;
+    }
+    .organiser-card-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .organiser-card-handle {
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Modal Action Bar */
+    .detail-actions-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    /* Create Event Form Styles */
+    .form-header {
+      padding: 24px 28px 16px 28px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .form-header h3 {
+      font-size: 1.4rem;
+      margin: 0 0 6px 0;
+    }
+    .form-header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    .form-body {
+      padding: 24px 28px;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 11px 16px;
+      color: #fff;
+      font-family: var(--font-family);
+      font-size: 0.92rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .form-control:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.25);
+      background: rgba(0, 210, 255, 0.05);
+    }
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 540px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .toggle-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    /* Cover Upload Preview */
+    .cover-upload-box {
+      border: 2px dashed var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      background: rgba(255, 255, 255, 0.02);
+      transition: var(--transition);
+    }
+    .cover-upload-box:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 210, 255, 0.05);
+    }
+    .cover-preview-img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      display: none;
+      margin-top: 10px;
+    }
+
+    /* Mobile Bottom Navigation */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: rgba(11, 20, 38, 0.96);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 999;
+      padding: 0 10px;
+    }
+    @media (min-width: 769px) {
+      .mobile-bottom-nav { display: none; }
+    }
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      padding: 6px 0;
+      transition: var(--transition);
+    }
+    .bottom-nav-item i {
+      font-size: 1.15rem;
+    }
+    .bottom-nav-item:hover, .bottom-nav-item.active {
+      color: var(--accent-cyan);
+    }
+    .bottom-create-btn .plus-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--grad-primary);
+      color: #060b18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4);
+      margin-top: -16px;
+    }
+
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      background: rgba(13, 23, 44, 0.96);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 210, 255, 0.3);
+      border-radius: var(--radius-full);
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 3000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    .toast-notice.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .toast-notice .toast-icon {
+      color: var(--accent-teal);
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Video Background Layer -->
+  <div class="video-bg-container">
+    <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="Logo.jpg">
+      <source src="Video Project 4.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="video-overlay-layer"></div>
+
+  <!-- ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo-wrap">
+        <img src="Logo.jpg" alt="Nexovanta Logo" class="brand-logo-img">
+        <div class="brand-text-block">
+          <span class="brand-name">NEXOVANTA</span>
+          <span class="brand-badge"><i class="fa-solid fa-location-dot"></i> CHUKA COMMUNITY</span>
+        </div>
+      </a>
+
+      <!-- Desktop Search -->
+      <div class="nav-search-wrap">
+        <i class="fa-solid fa-magnifying-glass nav-search-icon"></i>
+        <input type="text" id="globalNavSearch" class="nav-search-input" placeholder="Search events, workshops, news...">
+      </div>
+
+      <!-- Navigation Icons / Links -->
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link"><i class="fa-solid fa-house"></i> <span>Feed</span></a></li>
+          <li><a href="marketplace.html" class="nav-link"><i class="fa-solid fa-store"></i> <span>Market</span></a></li>
+          <li><a href="events.html" class="nav-link active"><i class="fa-solid fa-calendar-days"></i> <span>Events</span></a></li>
+          <li><a href="news.html" class="nav-link"><i class="fa-solid fa-newspaper"></i> <span>News</span></a></li>
+          <li><a href="videos.html" class="nav-link"><i class="fa-solid fa-circle-play"></i> <span>Videos</span></a></li>
+        </ul>
+      </nav>
+
+      <!-- Nav Actions (Notifications & User Profile) -->
+      <div class="nav-actions">
+        <!-- Notifications Bell -->
+        <div class="notif-dropdown-wrapper" id="notifDropdownWrapper">
+          <button class="icon-btn" id="notifBellBtn" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notif-count-badge" id="navNotifCount" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown-menu" id="notifDropdownMenu">
+            <div class="notif-menu-header">
+              <h4>Notifications</h4>
+              <button class="btn-text-link" id="markAllReadBtn">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notifListContainer">
+              <!-- Rendered items -->
+            </div>
+          </div>
+        </div>
+
+        <!-- User Dropdown (if logged in) -->
+        <div class="user-menu-wrapper" id="userMenuWrapper" style="display:none;">
+          <button class="user-profile-trigger" id="userMenuTrigger">
+            <div id="navUserAvatarWrap"></div>
+            <span class="user-handle" id="navUserHandle">@username</span>
+            <i class="fa-solid fa-chevron-down caret-icon"></i>
+          </button>
+          <div class="user-dropdown-menu" id="userDropdownMenu">
+            <div class="user-dropdown-header">
+              <div id="dropdownAvatar"></div>
+              <div>
+                <div class="user-dropdown-name" id="dropdownFullName">Full Name</div>
+                <div class="user-dropdown-handle" id="dropdownHandle">@username</div>
+                <div class="user-dropdown-role" id="dropdownRoleTag">Student 🎓</div>
+              </div>
+            </div>
+            <div class="user-dropdown-divider"></div>
+            <a href="#" class="user-dropdown-item" id="navProfileLink">
+              <i class="fa-regular fa-user"></i> My Profile
+            </a>
+            <a href="events.html" class="user-dropdown-item">
+              <i class="fa-regular fa-calendar-check"></i> My Events & RSVPs
+            </a>
+            <a href="news.html" class="user-dropdown-item">
+              <i class="fa-regular fa-newspaper"></i> Community News
+            </a>
+            <a href="videos.html" class="user-dropdown-item">
+              <i class="fa-solid fa-clapperboard"></i> Video Feed
+            </a>
+            <div class="user-dropdown-divider"></div>
+            <button class="user-dropdown-item logout-item" id="navLogoutBtn">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+            </button>
+          </div>
+        </div>
+
+        <!-- Guest CTAs (if not logged in) -->
+        <div id="guestActions" style="display:flex; gap:10px; align-items:center;">
+          <a href="login.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-to-bracket"></i> Log In</a>
+          <a href="login.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Join Chuka</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT: FULL-WIDTH CENTERED MAX 1100PX (NO SIDEBAR)
+       ========================================================================== -->
+  <main class="events-page-wrap">
+
+    <!-- Hero Banner -->
+    <div class="events-hero-card">
+      <div>
+        <span class="hero-badge-tag"><i class="fa-solid fa-calendar-star"></i> Chuka University & Ndagani Town</span>
+        <h1 class="hero-title">Chuka Community Events</h1>
+        <p class="hero-subtitle">
+          Discover university seminars, technology bootcamps, night markets, cultural galas, and local community meetups. RSVP in real-time or organise your own!
+        </p>
+      </div>
+
+      <div>
+        <button class="btn btn-primary btn-lg" id="btnOpenCreateEvent">
+          <i class="fa-solid fa-calendar-plus"></i> Create Event
+        </button>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search & Category Filter Tabs -->
+    <div class="events-toolbar">
+      <!-- Search Input -->
+      <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="eventsSearchInput" class="events-search-field" placeholder="Search events by title, venue, organiser or keywords...">
+      </div>
+
+      <!-- Filter Tabs: Upcoming | Today | This Week | This Month | Campus | Community | Business | Free Events -->
+      <div class="filter-tabs-scroll">
+        <button class="filter-chip active" data-filter="upcoming"><i class="fa-solid fa-clock"></i> Upcoming</button>
+        <button class="filter-chip" data-filter="today"><i class="fa-solid fa-sun"></i> Today</button>
+        <button class="filter-chip" data-filter="week"><i class="fa-solid fa-calendar-week"></i> This Week</button>
+        <button class="filter-chip" data-filter="month"><i class="fa-solid fa-calendar"></i> This Month</button>
+        <button class="filter-chip" data-filter="campus"><i class="fa-solid fa-graduation-cap"></i> Campus</button>
+        <button class="filter-chip" data-filter="community"><i class="fa-solid fa-people-roof"></i> Community</button>
+        <button class="filter-chip" data-filter="business"><i class="fa-solid fa-store"></i> Business</button>
+        <button class="filter-chip" data-filter="free"><i class="fa-solid fa-tag"></i> Free Events</button>
+      </div>
+    </div>
+
+    <!-- Meta Counts Bar -->
+    <div class="events-meta-bar">
+      <div class="events-meta-count" id="eventsCountLabel">
+        Showing <strong>0</strong> events
+      </div>
+      <div style="font-size: 0.8rem; color: var(--accent-cyan);">
+        <i class="fa-solid fa-globe"></i> Africa/Nairobi Time (UTC+3)
+      </div>
+    </div>
+
+    <!-- Events Grid (3-Col Desktop, 2 Tablet, 1 Mobile) -->
+    <div class="events-grid" id="eventsGridContainer">
+      <!-- Event cards will be dynamically rendered here -->
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       MOBILE BOTTOM NAVIGATION BAR
+       ========================================================================== -->
+  <nav class="mobile-bottom-nav">
+    <a href="index.html" class="bottom-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="news.html" class="bottom-nav-item">
+      <i class="fa-solid fa-newspaper"></i>
+      <span>News</span>
+    </a>
+    <button class="bottom-nav-item bottom-create-btn" id="mobileCreateBtn" title="Create Event">
+      <div class="plus-circle"><i class="fa-solid fa-plus"></i></div>
+      <span>Create</span>
+    </button>
+    <a href="events.html" class="bottom-nav-item active">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span>Events</span>
+    </a>
+    <a href="videos.html" class="bottom-nav-item">
+      <i class="fa-solid fa-circle-play"></i>
+      <span>Videos</span>
+    </a>
+  </nav>
+
+  <!-- ==========================================================================
+       EVENT DETAIL MODAL
+       ========================================================================== -->
+  <div class="modal-backdrop" id="eventDetailModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeDetailModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="detail-cover-header" id="detailCoverContainer">
+        <!-- Rendered Image or Gradient Icon -->
+      </div>
+
+      <div class="detail-body">
+        <div class="detail-meta-tags">
+          <span class="category-badge campus" id="detailCategoryBadge">Campus</span>
+          <span class="price-badge free" id="detailPriceBadge">Free Entry</span>
+          <span class="going-stat" id="detailGoingCount"><i class="fa-solid fa-circle-check"></i> 0 Going</span>
+        </div>
+
+        <h2 class="detail-title" id="detailTitle">Event Title</h2>
+
+        <!-- Schedule & Venue Box -->
+        <div class="detail-schedule-card">
+          <div class="schedule-item">
+            <i class="fa-solid fa-calendar-day"></i>
+            <div>
+              <strong>Start Date & Time</strong>
+              <span id="detailStartAt">--</span>
+            </div>
+          </div>
+          <div class="schedule-item">
+            <i class="fa-solid fa-flag-checkered"></i>
+            <div>
+              <strong>End Date & Time</strong>
+              <span id="detailEndAt">--</span>
+            </div>
+          </div>
+          <div class="schedule-item" style="grid-column: 1 / -1;">
+            <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+            <div>
+              <strong>Venue & Location</strong>
+              <span id="detailVenueLocation">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-description" id="detailDescription"></div>
+
+        <!-- Organiser Info Card -->
+        <div class="organiser-card">
+          <div id="detailOrganiserAvatar"></div>
+          <div class="organiser-card-meta">
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Organised By</div>
+            <a href="#" class="organiser-card-handle" id="detailOrganiserHandle">@username</a>
+            <div id="detailOrganiserRole" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Chuka Community</div>
+          </div>
+          <div id="detailContactWrap">
+            <!-- Contact link/phone -->
+          </div>
+        </div>
+
+        <!-- RSVP Decision Buttons -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+            Your RSVP Response:
+          </div>
+          <div class="rsvp-actions-bar" id="detailRsvpBar">
+            <button class="btn-rsvp" data-rsvp="going" id="detailBtnGoing"><i class="fa-solid fa-check"></i> Going</button>
+            <button class="btn-rsvp" data-rsvp="interested" id="detailBtnInterested"><i class="fa-solid fa-star"></i> Interested</button>
+            <button class="btn-rsvp" data-rsvp="cannot_attend" id="detailBtnCannot"><i class="fa-solid fa-xmark"></i> Can't Go</button>
+          </div>
+        </div>
+
+        <!-- Footer Actions: External Reg, Share, Save -->
+        <div class="detail-actions-row">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="detailRegisterLink" style="display:none; flex: 1;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Register Online
+          </a>
+          <button class="btn btn-outline" id="detailShareBtn" style="flex: 1;">
+            <i class="fa-solid fa-share-nodes"></i> Share Event
+          </button>
+          <button class="btn btn-outline" id="detailSaveBtn" title="Save Event">
+            <i class="fa-regular fa-bookmark"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       CREATE EVENT MODAL (AUTH PROTECTED)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="createEventModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeCreateModalBtn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="form-header">
+        <span class="hero-badge-tag"><i class="fa-solid fa-calendar-plus"></i> Organise</span>
+        <h3>Create a Community Event</h3>
+        <p>Publish an event for Chuka University students, Ndagani businesses, or local residents.</p>
+      </div>
+
+      <form id="createEventForm">
+        <div class="form-body">
+          <!-- Event Title -->
+          <div class="form-group">
+            <label class="form-label" for="inputEventTitle">Event Title *</label>
+            <input type="text" id="inputEventTitle" class="form-control" placeholder="e.g. Chuka Tech Summit 2026 or Ndagani Football Derby" required>
+          </div>
+
+          <!-- Category & Registration Type -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="selectEventCategory">Category *</label>
+              <select id="selectEventCategory" class="form-control" required>
+                <option value="campus">Campus & Academic</option>
+                <option value="community">Community & Town</option>
+                <option value="business">Business & Commerce</option>
+                <option value="sports">Sports & Athletics</option>
+                <option value="culture">Culture, Music & Arts</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="inputEventContact">Contact Phone / WhatsApp</label>
+              <input type="tel" id="inputEventContact" class="form-control" placeholder="e.g. 0712 345 678">
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="inputEventDesc">Event Description *</label>
+            <textarea id="inputEventDesc" class="form-control" placeholder="Provide full details: schedule, who can attend, what to bring, speakers..." required></textarea>
+          </div>
+
+          <!-- Date & Time Range -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="inputStartAt">Start Date & Time (Nairobi) *</label>
+              <input type="datetime-local" id="inputStartAt" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inputEndAt">End Date & Time (Nairobi) *</label>
+              <input type="datetime-local" id="inputEndAt" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Venue & Location -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="inputEventVenue">Venue Name *</label>
+              <input type="text" id="inputEventVenue" class="form-control" placeholder="e.g. University Main Hall or Ndagani Grounds" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="inputEventLocation">Location / Address *</label>
+              <input type="text" id="inputEventLocation" class="form-control" placeholder="e.g. Ndagani, Gate A, Chuka" required>
+            </div>
+          </div>
+
+          <!-- Free / Paid Toggle -->
+          <div class="form-group">
+            <div class="toggle-row">
+              <input type="checkbox" id="checkIsFree" class="toggle-checkbox" checked>
+              <label for="checkIsFree" style="font-weight: 700; color: #fff; cursor: pointer; font-size: 0.9rem;">
+                This is a Free Event (No Entry Fee)
+              </label>
+            </div>
+          </div>
+
+          <!-- Price (hidden if free) -->
+          <div class="form-group" id="priceInputGroup" style="display: none;">
+            <label class="form-label" for="inputEventPrice">Ticket Price (KES)</label>
+            <input type="number" id="inputEventPrice" class="form-control" placeholder="e.g. 300" min="0">
+          </div>
+
+          <!-- Registration Link -->
+          <div class="form-group">
+            <label class="form-label" for="inputRegUrl">External Registration Link (Optional)</label>
+            <input type="url" id="inputRegUrl" class="form-control" placeholder="https://forms.gle/... or website ticket link">
+          </div>
+
+          <!-- Cover Image Upload -->
+          <div class="form-group">
+            <label class="form-label">Cover Image</label>
+            <div class="cover-upload-box" id="coverUploadBox">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--accent-cyan); margin-bottom: 8px;"></i>
+              <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">Click to upload image or drag & drop</div>
+              <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px;">PNG, JPG, WebP up to 5MB</div>
+              <input type="file" id="coverFileInput" accept="image/*" style="display: none;">
+              <img id="coverPreviewImg" class="cover-preview-img" alt="Preview">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 10px;">
+            <i class="fa-solid fa-paper-plane"></i> Publish Community Event
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main scripts -->
+  <script src="app.js"></script>
+
+  <!-- Page Logic Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentFilter = 'upcoming';
+      let searchQuery = '';
+      let activeDetailEventId = null;
+      let coverImageBase64 = null;
+
+      // 1. Session Setup & Resilient User Detection
+      const currentUser = getCurrentUser();
+      updateAuthUI(currentUser);
+
+      // 2. Initial Render of Events
+      renderEvents();
+
+      // 3. Search Bar listener
+      const searchInput = document.getElementById('eventsSearchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          renderEvents();
+        });
+      }
+
+      const globalSearch = document.getElementById('globalNavSearch');
+      if (globalSearch) {
+        globalSearch.addEventListener('input', (e) => {
+          searchQuery = e.target.value.trim().toLowerCase();
+          if (searchInput) searchInput.value = searchQuery;
+          renderEvents();
+        });
+      }
+
+      // 4. Filter Chips
+      const filterChips = document.querySelectorAll('.filter-chip');
+      filterChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          filterChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentFilter = chip.getAttribute('data-filter');
+          renderEvents();
+        });
+      });
+
+      // 5. Create Event Triggers
+      const openCreateBtn = document.getElementById('btnOpenCreateEvent');
+      const mobileCreateBtn = document.getElementById('mobileCreateBtn');
+
+      function triggerCreate() {
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to create an event.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+          return;
+        }
+        openCreateModal();
+      }
+
+      if (openCreateBtn) openCreateBtn.addEventListener('click', triggerCreate);
+      if (mobileCreateBtn) mobileCreateBtn.addEventListener('click', triggerCreate);
+
+      // 6. Free/Paid Toggle in Form
+      const checkIsFree = document.getElementById('checkIsFree');
+      const priceGroup = document.getElementById('priceInputGroup');
+      if (checkIsFree && priceGroup) {
+        checkIsFree.addEventListener('change', () => {
+          priceGroup.style.display = checkIsFree.checked ? 'none' : 'block';
+        });
+      }
+
+      // 7. Image Upload in Form
+      const uploadBox = document.getElementById('coverUploadBox');
+      const fileInput = document.getElementById('coverFileInput');
+      const previewImg = document.getElementById('coverPreviewImg');
+
+      if (uploadBox && fileInput) {
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              coverImageBase64 = evt.target.result;
+              if (previewImg) {
+                previewImg.src = coverImageBase64;
+                previewImg.style.display = 'block';
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // 8. Submit Create Event Form
+      const createForm = document.getElementById('createEventForm');
+      if (createForm) {
+        createForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const user = getCurrentUser();
+          if (!user) {
+            showToast('Please log in first.');
+            window.location.href = 'login.html';
+            return;
+          }
+
+          const title = document.getElementById('inputEventTitle').value.trim();
+          const description = document.getElementById('inputEventDesc').value.trim();
+          const category = document.getElementById('selectEventCategory').value;
+          const venue = document.getElementById('inputEventVenue').value.trim();
+          const location = document.getElementById('inputEventLocation').value.trim();
+          const start_at = document.getElementById('inputStartAt').value;
+          const end_at = document.getElementById('inputEndAt').value;
+          const is_free = checkIsFree.checked;
+          const price = is_free ? 0 : parseFloat(document.getElementById('inputEventPrice').value || 0);
+          const registration_url = document.getElementById('inputRegUrl').value.trim();
+          const contact = document.getElementById('inputEventContact').value.trim();
+
+          if (!title || !description || !venue || !location || !start_at || !end_at) {
+            showToast('Please fill in all required fields.');
+            return;
+          }
+
+          const newEvent = NexovantaDB.Events.create({
+            organiser_id: user.id,
+            organiser_username: user.username,
+            title,
+            description,
+            category,
+            venue,
+            location,
+            start_at: new Date(start_at).toISOString(),
+            end_at: new Date(end_at).toISOString(),
+            is_free,
+            price,
+            registration_url,
+            contact,
+            cover_image_url: coverImageBase64
+          });
+
+          // Auto-mark organiser as going
+          NexovantaDB.EventRSVPs.upsert(newEvent.id, user.id, 'going');
+
+          showToast('Event published successfully! 🎉');
+          closeCreateModal();
+          createForm.reset();
+          if (previewImg) previewImg.style.display = 'none';
+          coverImageBase64 = null;
+          renderEvents();
+        });
+      }
+
+      // 9. Close Modal triggers
+      document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeCreateModal);
+      document.getElementById('closeDetailModalBtn')?.addEventListener('click', closeDetailModal);
+      document.getElementById('createEventModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'createEventModal') closeCreateModal();
+      });
+      document.getElementById('eventDetailModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'eventDetailModal') closeDetailModal();
+      });
+
+      // 10. Detail Modal RSVP Buttons
+      const detailRsvpBtns = document.querySelectorAll('#detailRsvpBar .btn-rsvp');
+      detailRsvpBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const user = getCurrentUser();
+          if (!user) {
+            showToast('Please log in to RSVP for this event.');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+            return;
+          }
+          const response = btn.getAttribute('data-rsvp');
+          if (activeDetailEventId) {
+            NexovantaDB.EventRSVPs.upsert(activeDetailEventId, user.id, response);
+            updateDetailRsvpState(activeDetailEventId, user.id);
+            renderEvents(); // refresh grid card RSVP counts
+            const labels = { going: 'marked as Going ✓', interested: 'marked as Interested ★', cannot_attend: 'marked as Can\'t Go' };
+            showToast(`You have ${labels[response]}!`);
+          }
+        });
+      });
+
+      // 11. Detail Share Button
+      document.getElementById('detailShareBtn')?.addEventListener('click', () => {
+        const shareData = {
+          title: document.getElementById('detailTitle').textContent,
+          text: `Check out this event on Nexovanta Chuka Community!`,
+          url: window.location.href
+        };
+        if (navigator.share) {
+          navigator.share(shareData).catch(() => {});
+        } else {
+          navigator.clipboard?.writeText(window.location.href);
+          showToast('Event link copied to clipboard! 🔗');
+        }
+      });
+
+      // 12. Detail Save Button
+      document.getElementById('detailSaveBtn')?.addEventListener('click', function() {
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to save events.');
+          return;
+        }
+        if (activeDetailEventId) {
+          const savedKey = `nx_saved_event_${user.id}_${activeDetailEventId}`;
+          const isSaved = localStorage.getItem(savedKey) === '1';
+          if (isSaved) {
+            localStorage.removeItem(savedKey);
+            this.innerHTML = '<i class="fa-regular fa-bookmark"></i>';
+            showToast('Event removed from your saved list.');
+          } else {
+            localStorage.setItem(savedKey, '1');
+            this.innerHTML = '<i class="fa-solid fa-bookmark" style="color:var(--accent-cyan);"></i>';
+            showToast('Event bookmarked to your profile! 🔖');
+          }
+        }
+      });
+
+      // 13. Notifications Toggle & Mark all read
+      const notifBell = document.getElementById('notifBellBtn');
+      const notifMenu = document.getElementById('notifDropdownMenu');
+      if (notifBell && notifMenu) {
+        notifBell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('userDropdownMenu')?.classList.remove('active');
+          notifMenu.classList.toggle('active');
+          renderNotifications();
+        });
+      }
+
+      const userTrigger = document.getElementById('userMenuTrigger');
+      const userMenu = document.getElementById('userDropdownMenu');
+      if (userTrigger && userMenu) {
+        userTrigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('notifDropdownMenu')?.classList.remove('active');
+          userMenu.classList.toggle('active');
+        });
+      }
+
+      document.addEventListener('click', () => {
+        notifMenu?.classList.remove('active');
+        userMenu?.classList.remove('active');
+      });
+
+      document.getElementById('markAllReadBtn')?.addEventListener('click', () => {
+        const user = getCurrentUser();
+        if (user) {
+          NexovantaDB.Notifications.markAllRead(user.id);
+          renderNotifications();
+          showToast('All notifications marked as read.');
+        }
+      });
+
+      document.getElementById('navLogoutBtn')?.addEventListener('click', () => {
+        NexovantaAuth.signOut().then(() => window.location.replace('login.html'));
+      });
+
+      // Helper: Render Events
+      function renderEvents() {
+        const container = document.getElementById('eventsGridContainer');
+        const countLabel = document.getElementById('eventsCountLabel');
+        if (!container) return;
+
+        let allEvents = NexovantaDB.Events.getAll();
+        const now = new Date();
+
+        // Filter based on tab
+        let filtered = allEvents.filter(event => {
+          const startDate = new Date(event.start_at);
+
+          if (currentFilter === 'upcoming') {
+            return startDate >= new Date(Date.now() - 3600000 * 4); // upcoming or active recently
+          }
+          if (currentFilter === 'today') {
+            return startDate.toDateString() === now.toDateString();
+          }
+          if (currentFilter === 'week') {
+            const sevenDaysLater = new Date(now.getTime() + 7 * 86400000);
+            return startDate >= now && startDate <= sevenDaysLater;
+          }
+          if (currentFilter === 'month') {
+            const thirtyDaysLater = new Date(now.getTime() + 30 * 86400000);
+            return startDate >= now && startDate <= thirtyDaysLater;
+          }
+          if (currentFilter === 'campus') {
+            return event.category === 'campus';
+          }
+          if (currentFilter === 'community') {
+            return event.category === 'community';
+          }
+          if (currentFilter === 'business') {
+            return event.category === 'business';
+          }
+          if (currentFilter === 'free') {
+            return event.is_free === true;
+          }
+          return true;
+        });
+
+        // Search filter
+        if (searchQuery) {
+          filtered = filtered.filter(e =>
+            (e.title || '').toLowerCase().includes(searchQuery) ||
+            (e.venue || '').toLowerCase().includes(searchQuery) ||
+            (e.location || '').toLowerCase().includes(searchQuery) ||
+            (e.description || '').toLowerCase().includes(searchQuery) ||
+            (e.organiser_username || '').toLowerCase().includes(searchQuery)
+          );
+        }
+
+        if (countLabel) {
+          countLabel.innerHTML = `Showing <strong>${filtered.length}</strong> event${filtered.length === 1 ? '' : 's'}`;
+        }
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="empty-events-box">
+              <i class="fa-regular fa-calendar-xmark"></i>
+              <h3>No Events Found</h3>
+              <p>There are no events matching your current filter or search criteria.</p>
+              <button class="btn btn-primary btn-sm" onclick="resetFilters()" style="margin-top: 14px;">
+                Reset All Filters
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        const user = getCurrentUser();
+
+        container.innerHTML = filtered.map(ev => {
+          const goingCount = NexovantaDB.EventRSVPs.countByEvent(ev.id);
+          const userRsvp = user ? NexovantaDB.EventRSVPs.get(ev.id, user.id)?.response : null;
+          const formattedDate = NexovantaDB.Events.formatDateNairobi(ev.start_at);
+
+          // Icon based on category
+          const catIcons = {
+            campus: 'fa-graduation-cap',
+            community: 'fa-people-roof',
+            business: 'fa-store',
+            sports: 'fa-futbol',
+            culture: 'fa-masks-theater'
+          };
+          const iconClass = catIcons[ev.category] || 'fa-calendar-star';
+
+          const coverHtml = ev.cover_image_url
+            ? `<img src="${ev.cover_image_url}" class="event-cover-img" alt="${escapeHtml(ev.title)}" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'event-placeholder-cover cat-${ev.category}\\'><i class=\\'fa-solid ${iconClass}\\'></i></div>';">`
+            : `<div class="event-placeholder-cover cat-${ev.category}"><i class="fa-solid ${iconClass}"></i></div>`;
+
+          const priceHtml = ev.is_free
+            ? `<span class="price-badge free">Free Entry</span>`
+            : `<span class="price-badge paid">KES ${Number(ev.price).toLocaleString()}</span>`;
+
+          return `
+            <div class="event-card" data-id="${ev.id}">
+              <div class="event-cover-wrap">
+                ${coverHtml}
+                <div class="badge-top-left">
+                  <span class="category-badge ${ev.category}">${ev.category}</span>
+                </div>
+                <div class="badge-top-right">
+                  ${priceHtml}
+                </div>
+              </div>
+
+              <div class="event-card-body">
+                <div class="event-date-row">
+                  <i class="fa-regular fa-clock"></i>
+                  <span>${formattedDate}</span>
+                </div>
+
+                <h3 class="event-title" title="${escapeHtml(ev.title)}">${escapeHtml(ev.title)}</h3>
+
+                <div class="event-location-row">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <span>${escapeHtml(ev.venue)} • ${escapeHtml(ev.location)}</span>
+                </div>
+
+                <div class="event-organiser-row">
+                  <span>By</span>
+                  <a href="profile.html?user=${encodeURIComponent(ev.organiser_username)}" class="event-organiser-link">@${escapeHtml(ev.organiser_username)}</a>
+                </div>
+
+                <div class="event-card-footer">
+                  <div class="rsvp-status-line">
+                    <span class="going-stat"><i class="fa-solid fa-circle-check"></i> ${goingCount} Going</span>
+                    <span style="font-size: 0.72rem; color: var(--text-dim);">${userRsvp ? 'You RSVPed' : 'RSVP below'}</span>
+                  </div>
+
+                  <div class="rsvp-actions-bar">
+                    <button class="btn-rsvp ${userRsvp === 'going' ? 'active going' : ''}" onclick="handleCardRsvp(event, '${ev.id}', 'going')">
+                      <i class="fa-solid fa-check"></i> Going
+                    </button>
+                    <button class="btn-rsvp ${userRsvp === 'interested' ? 'active interested' : ''}" onclick="handleCardRsvp(event, '${ev.id}', 'interested')">
+                      <i class="fa-solid fa-star"></i> Interested
+                    </button>
+                    <button class="btn-rsvp ${userRsvp === 'cannot_attend' ? 'active cannot_attend' : ''}" onclick="handleCardRsvp(event, '${ev.id}', 'cannot_attend')">
+                      <i class="fa-solid fa-xmark"></i> Can't
+                    </button>
+                  </div>
+
+                  <button class="btn-view-details" onclick="openDetailModal('${ev.id}')">
+                    <i class="fa-solid fa-circle-info"></i> View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Reset filters global helper
+      window.resetFilters = function() {
+        currentFilter = 'upcoming';
+        searchQuery = '';
+        if (searchInput) searchInput.value = '';
+        if (globalSearch) globalSearch.value = '';
+        filterChips.forEach(c => {
+          c.classList.toggle('active', c.getAttribute('data-filter') === 'upcoming');
+        });
+        renderEvents();
+      };
+
+      // Card RSVP click handler
+      window.handleCardRsvp = function(e, eventId, response) {
+        e.stopPropagation();
+        const user = getCurrentUser();
+        if (!user) {
+          showToast('Please log in to RSVP.');
+          setTimeout(() => { window.location.href = 'login.html'; }, 900);
+          return;
+        }
+        NexovantaDB.EventRSVPs.upsert(eventId, user.id, response);
+        renderEvents();
+        const labels = { going: 'marked as Going ✓', interested: 'marked as Interested ★', cannot_attend: 'marked as Can\'t Go' };
+        showToast(`You have ${labels[response]}!`);
+      };
+
+      // Open Detail Modal
+      window.openDetailModal = function(eventId) {
+        activeDetailEventId = eventId;
+        const ev = NexovantaDB.Events.getById(eventId);
+        if (!ev) return;
+
+        const modal = document.getElementById('eventDetailModal');
+        const user = getCurrentUser();
+
+        // Cover header
+        const coverContainer = document.getElementById('detailCoverContainer');
+        const catIcons = { campus: 'fa-graduation-cap', community: 'fa-people-roof', business: 'fa-store', sports: 'fa-futbol', culture: 'fa-masks-theater' };
+        const iconClass = catIcons[ev.category] || 'fa-calendar-star';
+
+        if (ev.cover_image_url) {
+          coverContainer.innerHTML = `<img src="${ev.cover_image_url}" alt="${escapeHtml(ev.title)}">`;
+        } else {
+          coverContainer.innerHTML = `<div class="event-placeholder-cover cat-${ev.category}"><i class="fa-solid ${iconClass}"></i></div>`;
+        }
+
+        // Meta tags
+        const catBadge = document.getElementById('detailCategoryBadge');
+        catBadge.className = `category-badge ${ev.category}`;
+        catBadge.textContent = ev.category.toUpperCase();
+
+        const priceBadge = document.getElementById('detailPriceBadge');
+        if (ev.is_free) {
+          priceBadge.className = 'price-badge free';
+          priceBadge.textContent = 'Free Entry';
+        } else {
+          priceBadge.className = 'price-badge paid';
+          priceBadge.textContent = `KES ${Number(ev.price).toLocaleString()}`;
+        }
+
+        const goingCount = NexovantaDB.EventRSVPs.countByEvent(ev.id);
+        document.getElementById('detailGoingCount').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${goingCount} Going`;
+
+        document.getElementById('detailTitle').textContent = ev.title;
+        document.getElementById('detailStartAt').textContent = NexovantaDB.Events.formatDateNairobi(ev.start_at);
+        document.getElementById('detailEndAt').textContent = NexovantaDB.Events.formatDateNairobi(ev.end_at);
+        document.getElementById('detailVenueLocation').textContent = `${ev.venue} (${ev.location})`;
+        document.getElementById('detailDescription').textContent = ev.description;
+
+        // Organiser
+        const organiserUser = NexovantaDB.Users.getByUsername(ev.organiser_username);
+        const avatarWrap = document.getElementById('detailOrganiserAvatar');
+        avatarWrap.innerHTML = NexovantaDB.getAvatarHtml(ev.organiser_username, organiserUser?.avatar_url, 44);
+
+        const handleLink = document.getElementById('detailOrganiserHandle');
+        handleLink.textContent = `@${ev.organiser_username}`;
+        handleLink.href = `profile.html?user=${encodeURIComponent(ev.organiser_username)}`;
+
+        document.getElementById('detailOrganiserRole').textContent = organiserUser
+          ? (organiserUser.role === 'student' ? 'Chuka Student 🎓' : organiserUser.role === 'business' ? 'Chuka Merchant 💼' : 'Chuka Resident 🏘️')
+          : 'Chuka Community';
+
+        const contactWrap = document.getElementById('detailContactWrap');
+        if (ev.contact) {
+          contactWrap.innerHTML = `
+            <a href="tel:${ev.contact}" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-phone"></i> Call
+            </a>
+          `;
+        } else {
+          contactWrap.innerHTML = '';
+        }
+
+        // External Registration Link
+        const regLink = document.getElementById('detailRegisterLink');
+        if (ev.registration_url) {
+          regLink.href = ev.registration_url;
+          regLink.style.display = 'inline-flex';
+        } else {
+          regLink.style.display = 'none';
+        }
+
+        // Bookmark state
+        const saveBtn = document.getElementById('detailSaveBtn');
+        if (user) {
+          const isSaved = localStorage.getItem(`nx_saved_event_${user.id}_${ev.id}`) === '1';
+          saveBtn.innerHTML = isSaved
+            ? '<i class="fa-solid fa-bookmark" style="color:var(--accent-cyan);"></i>'
+            : '<i class="fa-regular fa-bookmark"></i>';
+        }
+
+        // Update RSVP button state
+        updateDetailRsvpState(ev.id, user?.id);
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+
+      function updateDetailRsvpState(eventId, userId) {
+        const userRsvp = userId ? NexovantaDB.EventRSVPs.get(eventId, userId)?.response : null;
+        const btnGoing = document.getElementById('detailBtnGoing');
+        const btnInterested = document.getElementById('detailBtnInterested');
+        const btnCannot = document.getElementById('detailBtnCannot');
+
+        btnGoing.className = `btn-rsvp ${userRsvp === 'going' ? 'active going' : ''}`;
+        btnInterested.className = `btn-rsvp ${userRsvp === 'interested' ? 'active interested' : ''}`;
+        btnCannot.className = `btn-rsvp ${userRsvp === 'cannot_attend' ? 'active cannot_attend' : ''}`;
+
+        const goingCount = NexovantaDB.EventRSVPs.countByEvent(eventId);
+        document.getElementById('detailGoingCount').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${goingCount} Going`;
+      }
+
+      function closeDetailModal() {
+        document.getElementById('eventDetailModal')?.classList.remove('active');
+        document.body.style.overflow = '';
+        activeDetailEventId = null;
+      }
+
+      function openCreateModal() {
+        const modal = document.getElementById('createEventModal');
+        // Preset default start date to tomorrow 10:00
+        const tomorrow = new Date(Date.now() + 86400000);
+        tomorrow.setHours(10, 0, 0, 0);
+        const endTomorrow = new Date(tomorrow.getTime() + 3 * 3600000);
+
+        const formatIsoInput = (d) => {
+          const pad = n => String(n).padStart(2, '0');
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+
+        const startInput = document.getElementById('inputStartAt');
+        const endInput = document.getElementById('inputEndAt');
+        if (startInput && !startInput.value) startInput.value = formatIsoInput(tomorrow);
+        if (endInput && !endInput.value) endInput.value = formatIsoInput(endTomorrow);
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeCreateModal() {
+        document.getElementById('createEventModal')?.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Notifications helper
+      function renderNotifications() {
+        const user = getCurrentUser();
+        const container = document.getElementById('notifListContainer');
+        const countBadge = document.getElementById('navNotifCount');
+        if (!container) return;
+
+        if (!user) {
+          container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">Log in to see notifications</div>';
+          if (countBadge) countBadge.style.display = 'none';
+          return;
+        }
+
+        const unreadCount = NexovantaDB.Notifications.getUnreadCount(user.id);
+        if (countBadge) {
+          if (unreadCount > 0) {
+            countBadge.textContent = unreadCount;
+            countBadge.style.display = 'block';
+          } else {
+            countBadge.style.display = 'none';
+          }
+        }
+
+        const notifs = NexovantaDB.Notifications.getByUser(user.id);
+        if (notifs.length === 0) {
+          container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No notifications yet.</div>';
+          return;
+        }
+
+        container.innerHTML = notifs.map(n => `
+          <div class="notif-item ${n.read_at ? '' : 'unread'}">
+            <i class="fa-solid fa-bell" style="color:var(--accent-cyan);margin-top:2px;"></i>
+            <div>
+              <div style="color:#fff;">${escapeHtml(n.message)}</div>
+              <div style="font-size:0.7rem;color:var(--text-dim);margin-top:3px;">${NexovantaDB.timeAgo(n.created_at)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Render Auth UI in Topbar
+      function updateAuthUI(user) {
+        const guestBox = document.getElementById('guestActions');
+        const userMenu = document.getElementById('userMenuWrapper');
+        const notifBadge = document.getElementById('navNotifCount');
+
+        if (user) {
+          if (guestBox) guestBox.style.display = 'none';
+          if (userMenu) userMenu.style.display = 'block';
+
+          // Nav elements
+          const handle = document.getElementById('navUserHandle');
+          if (handle) handle.textContent = `@${user.username}`;
+
+          const navAvatarWrap = document.getElementById('navUserAvatarWrap');
+          if (navAvatarWrap) navAvatarWrap.innerHTML = NexovantaDB.getAvatarHtml(user.username, user.avatar_url, 30);
+
+          // Dropdown elements
+          const dropAvatar = document.getElementById('dropdownAvatar');
+          if (dropAvatar) dropAvatar.innerHTML = NexovantaDB.getAvatarHtml(user.username, user.avatar_url, 44);
+
+          const dropName = document.getElementById('dropdownFullName');
+          if (dropName) dropName.textContent = user.full_name || user.username;
+
+          const dropHandle = document.getElementById('dropdownHandle');
+          if (dropHandle) dropHandle.textContent = `@${user.username}`;
+
+          const dropRole = document.getElementById('dropdownRoleTag');
+          if (dropRole) dropRole.textContent = user.roleTitle || (user.role === 'student' ? 'Student 🎓' : user.role === 'business' ? 'Business 💼' : 'Resident 🏘️');
+
+          const profileLink = document.getElementById('navProfileLink');
+          if (profileLink) profileLink.href = `profile.html?user=${encodeURIComponent(user.username)}`;
+
+          // Check unread count
+          const unread = NexovantaDB.Notifications.getUnreadCount(user.id);
+          if (notifBadge && unread > 0) {
+            notifBadge.textContent = unread;
+            notifBadge.style.display = 'block';
+          }
+        } else {
+          if (guestBox) guestBox.style.display = 'flex';
+          if (userMenu) userMenu.style.display = 'none';
+          if (notifBadge) notifBadge.style.display = 'none';
+        }
+      }
+    });
+
+    // Global session helper with auto-recovery
+    function getCurrentUser() {
+      let session = NexovantaDB.Session.get();
+      if (session && !session.id && session.role) {
+        const user = NexovantaDB.Users.getAll().find(u => u.role === session.role) || NexovantaDB.Users.getAll()[0];
+        if (user) {
+          session = NexovantaDB.Session.set(user);
+        }
+      }
+      return session;
+    }
+
+    // Helper: Toast Notification
+    let toastTimer;
+    function showToast(message) {
+      let toast = document.getElementById('nexovantaToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'nexovantaToast';
+        toast.className = 'toast-notice';
+        toast.innerHTML = `
+          <i class="fa-solid fa-circle-check toast-icon"></i>
+          <span class="toast-text" id="toastMessage"></span>
+        `;
+        document.body.appendChild(toast);
+      }
+      const textElem = document.getElementById('toastMessage');
+      if (textElem) textElem.textContent = message;
+
+      clearTimeout(toastTimer);
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
