@@ -9,7 +9,7 @@
 
 ## Deployment
 
-This project is a browser-rendered HTML/JavaScript app, not a Next.js app. Deploy it to Vercel with the **Other** framework preset, no build command, and `.` as the output directory. Vercel serves the HTML, CSS, and browser scripts as static assets; the browser globals used by those scripts are not evaluated during Node.js server rendering. The main browser script is named `site.js` because Vercel treats a root-level `app.js` as a Node.js application entry point. A small Vercel serverless function at `api/supabase-config.js` supplies the public Supabase configuration.
+This project is a browser-rendered HTML/JavaScript app, not a Next.js app. Deploy it to Vercel with the **Other** framework preset. The checked-in `vercel.json` explicitly builds the HTML, CSS, browser scripts, and media as static assets, and builds only `api/supabase-config.js` as a serverless function. It also routes `/` directly to `index.html`; the browser globals in scripts are never evaluated in Node.js. The main browser script is named `site.js` so Vercel cannot mistake it for a Node.js application entry point. Do not override the build or output settings in the Vercel dashboard; the repository config defines them.
 
 In Vercel's project settings, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables for the Production and Preview environments you use. Do not deploy `.env`. Vercel routes `/supabase-config.js` to the function, matching the local Node server's behavior. Add the production site's origin and redirect URLs to Supabase Auth URL configuration.
 
