@@ -4,7 +4,7 @@ window.NexovantaAuth = (() => {
   const isConfigured = Boolean(
     config.url &&
     config.anonKey &&
-    !config.url.includes('https://spkxebritnluhnwwlmyw.supabase.co/rest/v1/') &&
+    !config.url.includes('spkxebritnluhnwwlmyw') &&
     !config.anonKey.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwa3hlYnJpdG5sdWhud3dsbXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNDE5MzIsImV4cCI6MjEwNzcxNzkzMn0.UOR4ARebQffNjnn7xtNU_b-QqjHA6ZypfD_dEeMYwyI')
   );
 
