@@ -1,10 +1,13 @@
 /* Supabase Auth and profile bridge for the existing static frontend. */
 window.NexovantaAuth = (() => {
-  const config = window.NEXOVANTA_SUPABASE_CONFIG || {};
+  const suppliedConfig = window.NEXOVANTA_SUPABASE_CONFIG || {};
+  const config = {
+    url: suppliedConfig.url || 'https://spkxebritnluhnwwlmyw.supabase.co',
+    anonKey: suppliedConfig.anonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwa3hlYnJpdG5sdWhud3dsbXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNDE5MzIsImV4cCI6MjEwNzcxNzkzMn0.UOR4ARebQffNjnn7xtNU_b-QqjHA6ZypfD_dEeMYwyI',
+  };
   const isConfigured = Boolean(
     config.url &&
-    config.anonKey &&
-    !config.anonKey.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwa3hlYnJpdG5sdWhud3dsbXl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNDE5MzIsImV4cCI6MjEwNzcxNzkzMn0.UOR4ARebQffNjnn7xtNU_b-QqjHA6ZypfD_dEeMYwyI')
+    config.anonKey
   );
 
   let client = null;

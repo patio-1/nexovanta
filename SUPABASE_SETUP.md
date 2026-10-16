@@ -1,7 +1,7 @@
 # Supabase Setup
 
 1. Create a Supabase project and run the full `supabase-migration.sql` in its SQL Editor.
-2. Put the project URL and public anon key in your ignored `.env` file using the names in `.env.example`. Never put a service-role key in this frontend server.
+2. Put the project URL and public anon key in your ignored `.env` file using the names in `.env.example`. The current public project URL and anon key are also embedded as browser-side fallbacks in `supabase-auth.js`; the config served by the local server or deployment environment takes precedence. Never put a service-role key in this frontend server or browser code.
 3. Run `node server.js` (or `npm start`) from the project directory and open `http://127.0.0.1:3000`. The server reads `.env` and provides the public Supabase config to the browser; restart it after changing `.env`.
 4. The anon key is intended for browser use. Profile and shared-content access is protected by row-level security (RLS); never put a service-role key in the browser or server configuration.
 5. In Supabase Auth URL configuration, set the site URL to `http://127.0.0.1:3000` for local development and allow the local/hosted redirect URLs. `file://` pages are not a supported Auth origin.
