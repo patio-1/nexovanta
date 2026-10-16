@@ -1,9 +1,9 @@
 /**
- * NexovantaDB — Legacy localStorage feature-data compatibility layer
+ * NexovantaDB — Local cache and compatibility API for Supabase-backed content
  * Chuka Community Platform — Social Network Data Management
- * 
- * Community and marketplace data remain local during the staged Supabase migration.
- * Authentication and profile writes are handled by Supabase.
+ *
+ * The existing synchronous page API uses localStorage as a cache. Supabase is the
+ * source of truth for shared content whenever cloud configuration is available.
  */
 
 const NexovantaDB = (() => {
@@ -16,6 +16,7 @@ const NexovantaDB = (() => {
     REACTIONS:     'nx_reactions',
     EVENTS:        'nx_events',
     EVENT_RSVPS:   'nx_event_rsvps',
+    EVENT_RSVP_COUNTS: 'nx_event_rsvp_counts',
     SAVED_POSTS:   'nx_saved_posts',
     NOTIFICATIONS: 'nx_notifications',
     REPORTS:       'nx_reports',
@@ -60,7 +61,11 @@ const NexovantaDB = (() => {
   }
 
   function writeAll(key, data) {
+    const previous = localStorage.getItem(key) || '[]';
     localStorage.setItem(key, JSON.stringify(data));
+    if (window.NexovantaCloud) {
+      window.NexovantaCloud.trackStorage(key, previous, JSON.stringify(data));
+    }
   }
 
   function readObj(key) {
@@ -450,18 +455,35 @@ const NexovantaDB = (() => {
     },
 
     countByEvent(eventId) {
+      const counts = readObj(KEYS.EVENT_RSVP_COUNTS);
+      if (Object.prototype.hasOwnProperty.call(counts, eventId)) {
+        return Number(counts[eventId]) || 0;
+      }
       return readAll(KEYS.EVENT_RSVPS).filter(r => r.event_id === eventId && r.response === 'going').length;
     },
 
     upsert(eventId, userId, response) {
       const rsvps = readAll(KEYS.EVENT_RSVPS);
       const existing = rsvps.findIndex(r => r.event_id === eventId && r.user_id === userId);
+      const previousResponse = existing === -1 ? null : rsvps[existing].response;
       if (existing !== -1) {
         rsvps[existing] = { ...rsvps[existing], response, updated_at: now() };
       } else {
         rsvps.push({ id: uuid(), event_id: eventId, user_id: userId, response, created_at: now(), updated_at: now() });
       }
       writeAll(KEYS.EVENT_RSVPS, rsvps);
+      const counts = readObj(KEYS.EVENT_RSVP_COUNTS);
+      if (Object.prototype.hasOwnProperty.call(counts, eventId)) {
+        counts[eventId] = Math.max(
+          0,
+          (Number(counts[eventId]) || 0)
+            - (previousResponse === 'going' ? 1 : 0)
+            + (response === 'going' ? 1 : 0)
+        );
+      } else {
+        counts[eventId] = rsvps.filter(r => r.event_id === eventId && r.response === 'going').length;
+      }
+      localStorage.setItem(KEYS.EVENT_RSVP_COUNTS, JSON.stringify(counts));
 
       // Notify event organiser
       const event = Events.getById(eventId);
@@ -533,6 +555,7 @@ const NexovantaDB = (() => {
       const notif = {
         id: uuid(),
         recipient_id: data.recipient_id,
+        actor_id: Session.get()?.id || null,
         actor_username: data.actor_username,
         notification_type: data.notification_type,
         entity_id: data.entity_id,
@@ -1270,7 +1293,7 @@ const NexovantaDB = (() => {
 })();
 
 // Auto-seed on load
-NexovantaDB.seed();
-if (typeof NexovantaDB.seedMessagesAndGroups === 'function') {
+if (!window.NexovantaAuth?.isConfigured) {
+  NexovantaDB.seed();
   NexovantaDB.seedMessagesAndGroups();
 }

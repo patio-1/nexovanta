@@ -1209,36 +1209,45 @@
     }
   }
 
-  function handleCheckoutSubmit(e) {
+  async function handleCheckoutSubmit(e) {
     e.preventDefault();
+    const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+    if (submitButton?.disabled) return;
+    if (submitButton) submitButton.disabled = true;
 
-    const name = document.getElementById('checkoutCustomerName')?.value;
-    const phone = document.getElementById('checkoutCustomerPhone')?.value;
-    const email = document.getElementById('checkoutCustomerEmail')?.value;
-    const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked')?.value || 'delivery';
-    const address = document.getElementById('checkoutDeliveryAddress')?.value;
-    const notes = document.getElementById('checkoutNotes')?.value;
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'mpesa';
+    try {
+      const name = document.getElementById('checkoutCustomerName')?.value;
+      const phone = document.getElementById('checkoutCustomerPhone')?.value;
+      const email = document.getElementById('checkoutCustomerEmail')?.value;
+      const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked')?.value || 'delivery';
+      const address = document.getElementById('checkoutDeliveryAddress')?.value;
+      const notes = document.getElementById('checkoutNotes')?.value;
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'mpesa';
 
-    const orderResult = window.MarketplaceStore.createOrders({
-      customer_name: name,
-      customer_phone: phone,
-      customer_email: email,
-      delivery_method: deliveryMethod,
-      delivery_address: address,
-      special_instructions: notes,
-      payment_method: paymentMethod
-    });
+      const orderResult = await window.MarketplaceStore.createOrders({
+        customer_name: name,
+        customer_phone: phone,
+        customer_email: email,
+        delivery_method: deliveryMethod,
+        delivery_address: address,
+        special_instructions: notes,
+        payment_method: paymentMethod
+      });
 
-    if (!orderResult.success) {
-      showToast(orderResult.message);
-      return;
+      if (!orderResult.success) {
+        showToast(orderResult.message);
+        return;
+      }
+
+      closeCheckoutModal();
+      updateCartUI();
+      openOrderConfirmation(orderResult);
+    } catch (error) {
+      console.error('Marketplace checkout failed:', error);
+      showToast(error.message || 'Could not place your order. Please try again.');
+    } finally {
+      if (submitButton) submitButton.disabled = false;
     }
-
-    // Order Success! Render confirmation
-    closeCheckoutModal();
-    updateCartUI();
-    openOrderConfirmation(orderResult);
   }
 
   function openOrderConfirmation(orderResult) {
@@ -1400,10 +1409,16 @@
         `).join('');
 
         ordersTbody.querySelectorAll('.order-status-select').forEach(sel => {
-          sel.addEventListener('change', () => {
+          sel.addEventListener('change', async () => {
             const ordId = sel.getAttribute('data-order-id');
-            window.MarketplaceStore.updateOrderStatus(ordId, sel.value);
-            showToast('Order status updated!');
+            try {
+              await window.MarketplaceStore.updateOrderStatus(ordId, sel.value);
+              showToast('Order status updated!');
+            } catch (error) {
+              console.error('Marketplace order status update failed:', error);
+              sel.value = window.MarketplaceStore.getOrderById(ordId)?.order_status || '';
+              showToast(error.message || 'Could not update the order status. Please try again.');
+            }
           });
         });
       }

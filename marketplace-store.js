@@ -16,6 +16,13 @@
     WISHLIST: 'nexovanta_wishlist_db'
   };
 
+  function writeCollection(key, records) {
+    const previous = localStorage.getItem(key) || '[]';
+    const next = JSON.stringify(records);
+    localStorage.setItem(key, next);
+    window.NexovantaCloud?.trackStorage(key, previous, next);
+  }
+
   class MarketplaceStore {
     constructor() {
       this.initStorage();
@@ -60,26 +67,27 @@
       });
 
       if (changed) {
-        localStorage.setItem(STORAGE_KEYS.SHOPS, JSON.stringify(shops));
+        writeCollection(STORAGE_KEYS.SHOPS, shops);
       }
     }
 
     initStorage() {
       const seed = window.NEXOVANTA_MARKETPLACE_DATA || {};
+      const useCloud = Boolean(window.NexovantaAuth?.isConfigured);
 
       // Initialize Shops
       if (!localStorage.getItem(STORAGE_KEYS.SHOPS)) {
-        localStorage.setItem(STORAGE_KEYS.SHOPS, JSON.stringify(seed.shops || []));
+        localStorage.setItem(STORAGE_KEYS.SHOPS, JSON.stringify(useCloud ? [] : (seed.shops || [])));
       }
 
       // Initialize Products
       if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
-        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(seed.products || []));
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(useCloud ? [] : (seed.products || [])));
       }
 
       // Initialize Reviews
       if (!localStorage.getItem(STORAGE_KEYS.REVIEWS)) {
-        localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(seed.reviews || []));
+        localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(useCloud ? [] : (seed.reviews || [])));
       }
 
       // Initialize Empty Collections if missing
@@ -87,7 +95,7 @@
         localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify([]));
       }
       if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-        // Provide 2 realistic sample incoming orders so the seller dashboard is immediately testable!
+        // Keep sample orders in the browser-only preview.
         const sampleOrders = [
           {
             id: 'ord-101',
@@ -146,7 +154,7 @@
             ]
           }
         ];
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(sampleOrders));
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(useCloud ? [] : sampleOrders));
       }
       if (!localStorage.getItem(STORAGE_KEYS.WISHLIST)) {
         localStorage.setItem(STORAGE_KEYS.WISHLIST, JSON.stringify([]));
@@ -244,14 +252,14 @@
         awning_color: shopData.awning_color || '#00d2ff',
         accent_color: shopData.accent_color || '#0284c7',
         owner_name: shopData.owner_name || 'Verified Merchant',
-        owner_id: shopData.owner_id || null,
+        owner_id: shopData.owner_id || NexovantaDB.Session.get()?.id || null,
         description: shopData.description || 'Welcome to our digital shopfront on Nexovanta!',
         badges: ['New Merchant', 'Community Verified'],
         created_at: new Date().toISOString()
       };
 
       shops.unshift(newShop);
-      localStorage.setItem(STORAGE_KEYS.SHOPS, JSON.stringify(shops));
+      writeCollection(STORAGE_KEYS.SHOPS, shops);
       return newShop;
     }
 
@@ -260,7 +268,7 @@
       const idx = shops.findIndex(s => s.id === shopId);
       if (idx !== -1) {
         shops[idx] = { ...shops[idx], ...updateData, updated_at: new Date().toISOString() };
-        localStorage.setItem(STORAGE_KEYS.SHOPS, JSON.stringify(shops));
+        writeCollection(STORAGE_KEYS.SHOPS, shops);
         return shops[idx];
       }
       return null;
@@ -341,6 +349,7 @@
       const newProduct = {
         id: newId,
         shop_id: shopId,
+        owner_id: shop?.owner_id || NexovantaDB.Session.get()?.id || null,
         name: productData.name,
         slug: slug,
         price: Number(productData.price) || 100,
@@ -362,7 +371,7 @@
       };
 
       products.unshift(newProduct);
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+      writeCollection(STORAGE_KEYS.PRODUCTS, products);
 
       // Update shop's product count
       if (shop) {
@@ -372,12 +381,13 @@
       return newProduct;
     }
 
-    updateProduct(productId, updateData) {
+    updateProduct(productId, updateData, sync = true) {
       const products = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS) || '[]');
       const idx = products.findIndex(p => p.id === productId);
       if (idx !== -1) {
         products[idx] = { ...products[idx], ...updateData, updated_at: new Date().toISOString() };
-        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+        if (sync) writeCollection(STORAGE_KEYS.PRODUCTS, products);
+        else localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
         return products[idx];
       }
       return null;
@@ -389,7 +399,7 @@
       if (!product) return false;
 
       products = products.filter(p => p.id !== productId);
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+      writeCollection(STORAGE_KEYS.PRODUCTS, products);
 
       // Decrement shop product count
       const shop = this.getShopById(product.shop_id);
@@ -534,7 +544,7 @@
     }
 
     // --- CHECKOUT & ORDER CREATION ---
-    createOrders(checkoutData) {
+    async createOrders(checkoutData) {
       const cartSummary = this.getCartSummary();
       if (!cartSummary.items.length) {
         return { success: false, message: 'Your shopping cart is empty.' };
@@ -564,6 +574,7 @@
 
       const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
       const createdOrders = [];
+      const stockDeductions = new Map();
       const parentOrderCode = 'NEX-' + Math.floor(10000 + Math.random() * 90000);
 
       // Create separate seller-specific order for each shop as required!
@@ -579,7 +590,7 @@
           id: 'ord-' + Date.now() + '-' + index,
           order_number: orderNumber,
           parent_code: parentOrderCode,
-          customer_id: checkoutData.customer_id || null,
+          customer_id: checkoutData.customer_id || NexovantaDB.Session.get()?.id || null,
           customer_name: checkoutData.customer_name.trim(),
           customer_phone: checkoutData.customer_phone.trim(),
           customer_email: checkoutData.customer_email ? checkoutData.customer_email.trim() : '',
@@ -607,20 +618,37 @@
           }))
         };
 
-        // Deduct inventory stock
         group.items.forEach(it => {
-          const prod = this.getProductById(it.product_id);
-          if (prod) {
-            const newStock = Math.max(0, prod.stock_quantity - it.quantity);
-            this.updateProduct(prod.id, { stock_quantity: newStock });
-          }
+          stockDeductions.set(
+            it.product_id,
+            (stockDeductions.get(it.product_id) || 0) + it.quantity
+          );
         });
 
         createdOrders.push(order);
         existingOrders.unshift(order);
       });
 
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(existingOrders));
+      if (window.NexovantaAuth?.isConfigured) {
+        await window.NexovantaCloud.createMarketplaceOrders(createdOrders);
+      }
+
+      stockDeductions.forEach((quantity, productId) => {
+        const product = this.getProductById(productId);
+        if (product) {
+          this.updateProduct(
+            productId,
+            { stock_quantity: Math.max(0, product.stock_quantity - quantity) },
+            false
+          );
+        }
+      });
+
+      if (window.NexovantaAuth?.isConfigured) {
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(existingOrders));
+      } else {
+        writeCollection(STORAGE_KEYS.ORDERS, existingOrders);
+      }
 
       // Clear Cart after successful order generation
       this.clearCart();
@@ -648,13 +676,20 @@
       return orders.find(o => o.id === orderId || o.order_number === orderId) || null;
     }
 
-    updateOrderStatus(orderId, newStatus) {
+    async updateOrderStatus(orderId, newStatus) {
       const orders = this.getOrders();
       const idx = orders.findIndex(o => o.id === orderId || o.order_number === orderId);
       if (idx !== -1) {
+        if (window.NexovantaAuth?.isConfigured) {
+          await window.NexovantaCloud.updateMarketplaceOrderStatus(orders[idx].id, newStatus);
+        }
         orders[idx].order_status = newStatus;
         orders[idx].updated_at = new Date().toISOString();
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+        if (window.NexovantaAuth?.isConfigured) {
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+        } else {
+          writeCollection(STORAGE_KEYS.ORDERS, orders);
+        }
         return orders[idx];
       }
       return null;
@@ -674,8 +709,10 @@
       const reviews = JSON.parse(localStorage.getItem(STORAGE_KEYS.REVIEWS) || '[]');
       const newReview = {
         id: 'rev-' + Date.now(),
+        user_id: NexovantaDB.Session.get()?.id || null,
         shop_id: reviewData.shop_id,
         product_id: reviewData.product_id || null,
+        status: 'published',
         customer_name: reviewData.customer_name || 'Verified Buyer',
         customer_role: reviewData.customer_role || 'Chuka Community Member',
         rating: Number(reviewData.rating) || 5,
@@ -684,7 +721,7 @@
       };
 
       reviews.unshift(newReview);
-      localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
+      writeCollection(STORAGE_KEYS.REVIEWS, reviews);
 
       // Update shop rating average
       const shopReviews = reviews.filter(r => r.shop_id === reviewData.shop_id);

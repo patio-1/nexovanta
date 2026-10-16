@@ -56,6 +56,8 @@ window.NexovantaAuth = (() => {
   return {
     isConfigured,
 
+    getClient,
+
     async signIn(email, password) {
       const { data, error } = await getClient().auth.signInWithPassword({ email, password });
       if (error) throw error;
