@@ -9,7 +9,13 @@
 
 ## Deployment
 
-Deploy to a Node.js host with `npm start` as its start command. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in the host's environment settings; the server binds to `0.0.0.0` and honors the host's `PORT`. Add the production site's origin and redirect URLs to Supabase Auth URL configuration. Do not deploy the local `.env` file.
+This project is a browser-rendered HTML/JavaScript app, not a Next.js app. Deploy it to Vercel with the **Other** framework preset, no build command, and `.` as the output directory. Vercel serves the HTML, CSS, and browser scripts as static assets; the browser globals used by those scripts are not evaluated during Node.js server rendering. A small Vercel serverless function at `api/supabase-config.js` supplies the public Supabase configuration.
+
+In Vercel's project settings, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables for the Production and Preview environments you use. Do not deploy `.env`. Vercel routes `/supabase-config.js` to the function, matching the local Node server's behavior. Add the production site's origin and redirect URLs to Supabase Auth URL configuration.
+
+Alternatively, deploy to a Node.js host with `npm start` as its start command. Set the same environment variables there; `server.js` binds to `0.0.0.0` and honors the host's `PORT`.
+
+If you are migrating these pages into Next.js separately, keep browser-only scripts out of server-rendered modules. Render them only in client components after mount, or use a client-only dynamic import with server-side rendering disabled; the existing HTML site does not require that migration to deploy on Vercel.
 
 Authentication, profiles, posts, comments, reactions, events and RSVPs, news, marketplace listings/orders/reviews, chats, messages, notifications, reports, and saved posts use Supabase as their shared data store. The browser retains a local cache for the existing synchronous page code; changes are synchronized to Supabase and refreshed when pages load. Marketplace checkout validates current product prices and stock and creates orders atomically in Supabase. The shopping cart and marketplace wishlist remain browser-local.
 
