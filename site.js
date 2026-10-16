@@ -1,6 +1,6 @@
 /**
  * Nexovanta - Chuka Community Platform
- * Main Interactive Application Script
+ * Main browser-side interactive application script
  */
 
 document.addEventListener('DOMContentLoaded', () => {
